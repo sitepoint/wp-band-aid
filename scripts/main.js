@@ -49,11 +49,44 @@ chrome.extension.sendMessage({}, function (response) {
                 var titleCapBtn = document.createElement('button');
                 titleCapBtn.innerText = "Capitalize";
                 titleCapBtn.className = "wp-core-ui button";
-                $(titleCapBtn).click(function(e){
+                $(titleCapBtn).click(function (e) {
                     $(titleInput).val(capitalize($(titleInput).val()));
                     return false;
                 });
                 $(titleWrap).append(titleCapBtn);
+            }
+
+            var tagsFrame = $("#tagsdiv-post_tag");
+            var tagsContainer = $(tagsFrame).find(".tagchecklist");
+            if ($(tagsContainer).length) {
+                // container of tags found
+
+                var tagsButton = document.createElement('button');
+                tagsButton.innerText = "Copy tags";
+                tagsButton.className = "wp-core-ui button";
+
+
+                $(tagsButton).click(function (e) {
+
+                    var tags = $(tagsContainer).find("span");
+                    if ($(tags).length) {
+                        // tags exist
+                        var tagString = "";
+                        $.each(tags, function (index, tagSpan) {
+                            var text = $(tagSpan).text();
+                            text = text.replace(text.substr(0, 2), "");
+                            if (tagString == "") {
+                                tagString = text;
+                            } else {
+                                tagString += ", " + text;
+                            }
+                        });
+                        copyTextToClipboard(tagString);
+                    }
+                    return false;
+                });
+
+                $(tagsFrame).find(".ajaxtag").append(tagsButton);
             }
 
             // ----------------------------------------------------------
@@ -61,6 +94,16 @@ chrome.extension.sendMessage({}, function (response) {
         }
     }, 10);
 });
+
+function copyTextToClipboard(text) {
+    var copyFrom = document.createElement("textarea");
+    copyFrom.textContent = text;
+    var body = document.getElementsByTagName('body')[0];
+    body.appendChild(copyFrom);
+    copyFrom.select();
+    document.execCommand('copy');
+    body.removeChild(copyFrom);
+}
 
 var prepositions = [
     'a',
@@ -189,9 +232,8 @@ var conjunctions = [
 var punct = "([!\"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]*)";
 
 var all_lower_case = '(' + (prepositions.concat(articles).concat(conjunctions)).join('|') + ')';
-console.log('all lower case', all_lower_case);
 
-var capitalize = function(title){
+var capitalize = function (title) {
     var parts = [], split = /[:.;?!] |(?: |^)["Ò]/g, index = 0;
 
     title = title.replace(/[\u2018\u2019]/g, "'")
@@ -200,33 +242,33 @@ var capitalize = function(title){
     while (true) {
         var m = split.exec(title);
 
-        parts.push( title.substring(index, m ? m.index : title.length)
-            .replace(/\b([A-Za-z][a-z.'Õ]*)\b/g, function(all){
+        parts.push(title.substring(index, m ? m.index : title.length)
+            .replace(/\b([A-Za-z][a-z.'Õ]*)\b/g, function (all) {
                 return /[A-Za-z]\.[A-Za-z]/.test(all) ? all : upper(all);
             })
             .replace(RegExp("\\b" + all_lower_case + "\\b", "ig"), lower)
-            .replace(RegExp("^" + punct + all_lower_case + "\\b", "ig"), function(all, punct, word){
+            .replace(RegExp("^" + punct + all_lower_case + "\\b", "ig"), function (all, punct, word) {
                 return punct + upper(word);
             })
             .replace(RegExp("\\b" + all_lower_case + punct + "$", "ig"), upper));
 
         index = split.lastIndex;
 
-        if ( m ) parts.push( m[0] );
+        if (m) parts.push(m[0]);
         else break;
     }
 
     return parts.join("").replace(/ V(s?)\. /ig, " v$1. ")
         .replace(/(['Õ])S\b/ig, "$1s")
-        .replace(/\b(AT&T|Q&A)\b/ig, function(all){
+        .replace(/\b(AT&T|Q&A)\b/ig, function (all) {
             return all.toUpperCase();
         });
 };
 
-function lower(word){
+function lower(word) {
     return word.toLowerCase();
 }
 
-function upper(word){
-    return word.substr(0,1).toUpperCase() + word.substr(1);
+function upper(word) {
+    return word.substr(0, 1).toUpperCase() + word.substr(1);
 }
