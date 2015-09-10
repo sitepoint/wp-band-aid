@@ -1,0 +1,14 @@
+.missing-value {
+    border: 2px solid red !important;
+}
+.hidden {
+    display: none;
+}
+.proofreader-main-row td {
+    padding: 2px 10px;
+    width: 100%;
+    border-bottom: 1px solid lightgrey;
+}
+.proofreader-main-row.error {
+    background-color: #F2DEDE;
+}
