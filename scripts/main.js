@@ -89,6 +89,26 @@ chrome.extension.sendMessage({}, function (response) {
                 $(tagsFrame).find(".ajaxtag").append(tagsButton);
             }
 
+            var seriesInput = $("#newseries");
+            var seriesChecklist = $("#serieschecklist").find('li');
+            if ($(seriesInput).length) {
+                // series input was found
+                $(seriesInput).keyup(function(e){
+                    var text = $(seriesInput).val();
+                    if (text == "") {
+                        $("#serieschecklist li").removeClass("hidden");
+                    }
+                    $.each(seriesChecklist, function(index, listItem) {
+                        var seriesName = $(listItem).text();
+                        if (seriesName.indexOf(text) > -1) {
+                            $(listItem).removeClass('hidden');
+                        } else {
+                            $(listItem).addClass('hidden');
+                        }
+                    });
+                });
+            }
+
             // ----------------------------------------------------------
 
         }
