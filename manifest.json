@@ -1,6 +1,6 @@
 {
   "name": "WP Band Aid",
-  "version": "0.3",
+  "version": "0.4",
   "manifest_version": 2,
   "description": "This extension is for internal use at SitePoint. It makes using the WP back end a bit easier.",
   "background": {
