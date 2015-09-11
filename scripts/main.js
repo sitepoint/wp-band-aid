@@ -10,38 +10,59 @@ chrome.extension.sendMessage({}, function (response) {
                 "strings": ["[author_more]"],
                 "patterns": []
             };
+            var rx = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/ig;
 
+            // Check editor text for strings and patterns
             var editorField = $(".wp-editor-area");
             if ($(editorField).length) {
                 // Editor field found
+
+                // Add information row
                 var row = document.createElement('tr');
                 var cell = document.createElement('td');
                 $(cell).attr('colspan', 2);
                 row.className = "proofreader-main-row";
                 row.appendChild(cell);
-
                 $("#post-status-info tbody").prepend(row);
 
                 var checker = setInterval(function () {
 
+                    var errorMessages = [];
+
                     var content = $(editorField).val();
 
                     checkFor.strings.forEach(function (a) {
-                        if (content.indexOf(a) > -1) {
-                            $(editorField).removeClass('missing-value');
-                            $(row).removeClass("error");
-                            $(cell).text("All good!");
-                        } else {
-                            $(editorField).addClass('missing-value');
-                            $(row).addClass("error");
-                            $(cell).text("Missing " + a + "!");
+                        if (content.indexOf(a) === -1) {
+                            errorMessages.push("Missing " + a + "!");
                         }
                     });
+
+                    var matches = getAllMatches(rx, content);
+                    $.each(matches, function(i, el) {
+                        if (!linkOk(el)) {
+                            errorMessages.push("Relative link found: " + el);
+                        }
+                    });
+
+                    if (errorMessages.length) {
+                        $(editorField).addClass('error');
+                        $(row).addClass("error");
+                        var cellText = "";
+                        $.each(errorMessages, function (i, msg) {
+                            cellText += msg + "<br>";
+                        });
+                        $(cell).html(cellText)
+                    } else {
+                        $(editorField).removeClass('error');
+                        $(row).removeClass("error");
+                        $(cell).text("All good");
+                    }
 
                 }, 2000);
 
             }
 
+            // Add title capitalization button
             var titleWrap = $("#titlewrap");
             var titleInput = $("#title");
             if ($(titleWrap).length) {
@@ -56,6 +77,7 @@ chrome.extension.sendMessage({}, function (response) {
                 $(titleWrap).append(titleCapBtn);
             }
 
+            // Add copy tags button
             var tagsFrame = $("#tagsdiv-post_tag");
             var tagsContainer = $(tagsFrame).find(".tagchecklist");
             if ($(tagsContainer).length) {
@@ -64,7 +86,6 @@ chrome.extension.sendMessage({}, function (response) {
                 var tagsButton = document.createElement('button');
                 tagsButton.innerText = "Copy tags";
                 tagsButton.className = "wp-core-ui button";
-
 
                 $(tagsButton).click(function (e) {
 
@@ -89,16 +110,17 @@ chrome.extension.sendMessage({}, function (response) {
                 $(tagsFrame).find(".ajaxtag").append(tagsButton);
             }
 
+            // Make series input into an insta-filter
             var seriesInput = $("#newseries");
             var seriesChecklist = $("#serieschecklist").find('li');
             if ($(seriesInput).length) {
                 // series input was found
-                $(seriesInput).keyup(function(e){
+                $(seriesInput).keyup(function (e) {
                     var text = $(seriesInput).val();
                     if (text == "") {
                         $("#serieschecklist li").removeClass("hidden");
                     }
-                    $.each(seriesChecklist, function(index, listItem) {
+                    $.each(seriesChecklist, function (index, listItem) {
                         var seriesName = $(listItem).text();
                         if (seriesName.indexOf(text) > -1) {
                             $(listItem).removeClass('hidden');
@@ -109,11 +131,30 @@ chrome.extension.sendMessage({}, function (response) {
                 });
             }
 
+            var cacheBanner = $("#edge-mode");
+            if ($(cacheBanner).length) {
+                $(cacheBanner).remove();
+            }
+
             // ----------------------------------------------------------
 
         }
     }, 10);
 });
+
+function getAllMatches(myRe, str) {
+    var returnData = [];
+    var myArray;
+    while ((myArray = myRe.exec(str)) !== null) {
+        returnData.push(myArray[1]);
+    }
+    return returnData;
+}
+
+function linkOk(url) {
+    var r = new RegExp('^(?:[a-z]+:)?//', 'i');
+    return r.test(url);
+}
 
 function copyTextToClipboard(text) {
     var copyFrom = document.createElement("textarea");
