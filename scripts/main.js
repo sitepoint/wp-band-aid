@@ -98,7 +98,7 @@ chrome.extension.sendMessage({}, function (response) {
                         var html = "<h3>Headline Analysis Score: " + data.score.total + "</h3>";
 
                         if (data.char_count.summary == 'positive') {
-                            html += "<span class='positive'>&#10004; The headline's character count seems fine. You're at " + data.char_count.length + ", scoring "+ data.char_count.score  +" / 100.</span><br>";
+                            html += "<span class='positive'>&#10004; The headline's character count seems fine. You're at " + data.char_count.length + ", scoring " + data.char_count.score + " / 100.</span><br>";
                         } else {
                             html += "<span class='negative'>&bigotimes; Character length could be better. Aim for 55 or so characters. You're now at " + data.char_count.length + ", scoring " + data.char_count.score + " / 100.</span><br>";
                             if (data.suggestions.char_length !== undefined) {
@@ -107,7 +107,7 @@ chrome.extension.sendMessage({}, function (response) {
                         }
 
                         if (data.word_count.summary == 'positive') {
-                            html += "<span class='positive'>&#10004; The headline's word count seems fine. You're at " + data.word_count.length + " words, scoring "+ data.char_count.score  +" / 100.</span><br>";
+                            html += "<span class='positive'>&#10004; The headline's word count seems fine. You're at " + data.word_count.length + " words, scoring " + data.char_count.score + " / 100.</span><br>";
                         } else {
                             html += "<span class='negative'>&bigotimes; Word count could be better. Aim for 6 words for best results. You're now at " + data.word_count.length + ", scoring " + data.word_count.score + " / 100.</span><br>";
                             if (data.suggestions.word_length !== undefined) {
@@ -132,6 +132,23 @@ chrome.extension.sendMessage({}, function (response) {
                             html += "<li><span class='bold score'>" + data.word_balance.uncommon.percentage + "%</span> of your words are uncommon. Uncommon words occur less frequently than common words, but give your headline substance. Great headlines are usually made up of 10-20% uncommon words. <span class='bold'>Examples: actually, awesome, baby, beautiful, heart, here, more, right, see, social, world, year...</span></li>";
                             html += "<li><span class='bold score'>" + data.word_balance.emotional.percentage + "%</span> of your words are emotional. Emotional words frequently stir an emotional response in the reader. They have been proven to drive clicks and shares. Great headlines are usually made up of 10-15% emotional words. <span class='bold'>Examples: absolutely, attractive, blissful, bravery, confessions, danger, dollar, spotlight, valuable, worry, wonderful, zinger...</span></li>";
                             html += "<li><span class='bold score'>" + data.word_balance.power.percentage + "%</span> of your words are power words. Power words or phrases indicate intense trigger words that frequently command a readers attention and action. Great headlines contain at least 1 power phrase or word. <span class='bold'>Examples of power phrases: for the first time, in the world, make you, no questions asked, pay zero, thing I've ever seen, what this, will make you, you see what, you need to know, you see, what happened to...</span></li></ul>";
+                        }
+
+                        var otherAdviceMessages = [];
+                        var otherAdviceMessageKeys = ['type'];
+                        $.each(otherAdviceMessageKeys, function (i, key) {
+                            if (data.suggestions[key] !== undefined) {
+                                otherAdviceMessages.push(data.suggestions[key].message + " " + data.suggestions[key].suggestion);
+                            }
+                        });
+
+                        if (otherAdviceMessages.length) {
+                            html += "<h4>Other advice</h4>"
+                            html += "<ul>";
+                            $.each(otherAdviceMessages, function (i, msg) {
+                               html += "<li>" + msg + "</li>";
+                            });
+                            html += "</ul>";
                         }
 
                         $(scoreInfo).html(html);
