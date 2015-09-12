@@ -12,6 +12,9 @@ chrome.extension.sendMessage({}, function (response) {
             };
             var rx = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/ig;
 
+            var titleWrap = $("#titlewrap");
+            var titleInput = $("#title");
+
             // Check editor text for strings and patterns
             var editorField = $(".wp-editor-area");
             if ($(editorField).length) {
@@ -38,7 +41,7 @@ chrome.extension.sendMessage({}, function (response) {
                     });
 
                     var matches = getAllMatches(rx, content);
-                    $.each(matches, function(i, el) {
+                    $.each(matches, function (i, el) {
                         if (!linkOk(el)) {
                             errorMessages.push("Relative link found: " + el);
                         }
@@ -62,18 +65,81 @@ chrome.extension.sendMessage({}, function (response) {
 
             }
 
-            // Add title capitalization button
-            var titleWrap = $("#titlewrap");
-            var titleInput = $("#title");
+            // Add the headline analysis score bar and capitalizer
+
             if ($(titleWrap).length) {
                 // Title field found
+
+                var scoreFrame = document.createElement('div');
+                scoreFrame.className = 'headalyze';
+                var scoreBar = document.createElement('div');
+                scoreBar.className = 'headalyze-bar';
+                var scoreInfo = document.createElement('div');
+                scoreInfo.className = 'headalyze-info';
+                var scorePointer = document.createElement('div');
+                scorePointer.className = 'pointer';
+                $(scoreBar).append(scorePointer);
+                $(scoreFrame).append(scoreBar);
+                $(scoreFrame).append(scoreInfo);
+                $(scoreFrame).click(function (e) {
+                    console.log("Toggle");
+                    $(scoreInfo).toggle()
+                });
+
                 var titleCapBtn = document.createElement('button');
-                titleCapBtn.innerText = "Capitalize";
+                titleCapBtn.innerText = "Capitalize and check";
                 titleCapBtn.className = "wp-core-ui button";
                 $(titleCapBtn).click(function (e) {
                     $(titleInput).val(capitalize($(titleInput).val()));
+
+                    $.get("https://cos-headlines.herokuapp.com/?headline=" + $(titleInput).val(), function (data) {
+                        $(scorePointer).css("left", data.score.total + "%");
+
+                        var html = "<h3>Headline Analysis Score: " + data.score.total + "</h3>";
+
+                        if (data.char_count.summary == 'positive') {
+                            html += "<span class='positive'>&#10004; The headline's character count seems fine.</span><br>";
+                        } else {
+                            html += "<span class='negative'>&bigotimes; Character length could be better. Aim for 55 or so characters.</span><br>";
+                            if (data.suggestions.char_length !== undefined) {
+                                html += "<span class='negative'>" + data.suggestions.char_length.message + " " + data.suggestions.char_length.suggestion + "</span><br>";
+                            }
+                        }
+
+                        if (data.word_count.summary == 'positive') {
+                            html += "<span class='positive'>&#10004; The headline's word count seems fine.</span><br>";
+                        } else {
+                            html += "<span class='negative'>&bigotimes; Word count could be better. Aim for 6 words for best results.</span><br>";
+                            if (data.suggestions.word_length !== undefined) {
+                                html += "<span class='negative'>" + data.suggestions.word_length.message + " " + data.suggestions.word_length.suggestion + "</span><br>";
+                            }
+                        }
+
+                        if (data.sentiment.summary == 'neutral') {
+                            html += "<span class='negative'>&bigotimes; Your sentiment is neutral. Good clickbait is either strongly positive or negative.</span><br>";
+                        } else {
+                            html += "<span class='positive'>&#10004; The sentiment looks good!</span><br>";
+                        }
+
+                        if (data.word_balance.summary == 'positive') {
+                            html += "<span class='positive'>&#10004; The word balance seems fine:</span><br>";
+                        } else {
+                            html += "<span class='negative'>&bigotimes; Your word balance is off:</span><br>";
+                            if (data.suggestions.common_words !== undefined) {
+                                html += "<span class='negative'>" + data.suggestions.common_words.message + " " + data.suggestions.common_words.suggestion + "</span><br>";
+                            }
+                            html += "<ul><li>" + data.word_balance.common.percentage + "% of your words are common. Common words make up the basic structure of readable headlines. Great headlines are usually made up of 20-30% common words.</li>";
+                            html += "<li>" + data.word_balance.uncommon.percentage + "% of your words are uncommon. Uncommon words occur less frequently than common words, but give your headline substance. Great headlines are usually made up of 10-20% uncommon words..</li>";
+                            html += "<li>" + data.word_balance.emotional.percentage + "% of your words are emotional. Emotional words frequently stir an emotional response in the reader. They have been proven to drive clicks and shares. Great headlines are usually made up of 10-15% emotional words.</li>";
+                            html += "<li>" + data.word_balance.power.percentage + "% of your words are power words. Power words or phrases indicate intense trigger words that frequently command a readers attention and action. Great headlines contain at least 1 power phrase or word.</li></ul>";
+                        }
+
+                        $(scoreInfo).html(html);
+                    });
+
                     return false;
                 });
+                $(titleWrap).append(scoreFrame);
                 $(titleWrap).append(titleCapBtn);
             }
 
@@ -135,8 +201,6 @@ chrome.extension.sendMessage({}, function (response) {
             if ($(cacheBanner).length) {
                 $(cacheBanner).remove();
             }
-
-            // ----------------------------------------------------------
 
         }
     }, 10);

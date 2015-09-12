@@ -12,3 +12,57 @@
 .proofreader-main-row.error {
     background-color: #F2DEDE;
 }
+.headalyze {
+    margin-bottom: 3px;
+    border: 1px solid silver;
+    -webkit-user-select: none; /* Chrome/Safari */
+}
+.headalyze-bar {
+    height: 5px;
+    /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#c55854+0,f0cc55+50,7cc576+100 */
+    background: -moz-linear-gradient(left,  #c55854 0%, #f0cc55 50%, #7cc576 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,#c55854), color-stop(50%,#f0cc55), color-stop(100%,#7cc576)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(left,  #c55854 0%,#f0cc55 50%,#7cc576 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(left,  #c55854 0%,#f0cc55 50%,#7cc576 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(left,  #c55854 0%,#f0cc55 50%,#7cc576 100%); /* IE10+ */
+    background: linear-gradient(to right,  #c55854 0%,#f0cc55 50%,#7cc576 100%); /* W3C */
+    position: relative;
+}
+
+.headalyze-bar .pointer {
+    position: absolute;
+    left: 0%;
+    top: -50%;
+    width: 7px;
+    height: 7px;
+    background-color: ivory;
+    border: 2px solid darkgray;
+    border-radius: 5px;
+    -webkit-transition: 1s ease-in-out;
+}
+
+.headalyze-info {
+    display: none;
+    margin: 5px;
+}
+
+.headalyze-info span {
+    margin-left: 20px;
+}
+
+.headalyze-info span.positive {
+    color: #7cc576;
+}
+
+.headalyze-info span.negative {
+    color: #c55854;
+}
+
+.headalyze-info span.bold {
+    font-weight: bold;
+}
+
+.headalyze-info ul {
+    list-style: inherit;
+    margin-left: 30px;
+}
