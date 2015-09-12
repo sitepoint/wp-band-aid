@@ -46,7 +46,7 @@
     margin: 5px;
 }
 
-.headalyze-info span {
+.headalyze-info>span {
     margin-left: 20px;
 }
 
@@ -62,7 +62,17 @@
     font-weight: bold;
 }
 
+.headalyze-info span.bold.score {
+    padding: 2px;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
+    border-radius: 2px;
+    border: 1px solid darkgray;
+    background-color: lightgray;
+}
+
 .headalyze-info ul {
     list-style: inherit;
     margin-left: 30px;
 }
+

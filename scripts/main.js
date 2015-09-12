@@ -47,7 +47,7 @@ chrome.extension.sendMessage({}, function (response) {
                         }
                     });
 
-                    if (errorMessages.length) {
+                    if (errorMessages.length && content != "") {
                         $(editorField).addClass('error');
                         $(row).addClass("error");
                         var cellText = "";
@@ -98,18 +98,18 @@ chrome.extension.sendMessage({}, function (response) {
                         var html = "<h3>Headline Analysis Score: " + data.score.total + "</h3>";
 
                         if (data.char_count.summary == 'positive') {
-                            html += "<span class='positive'>&#10004; The headline's character count seems fine.</span><br>";
+                            html += "<span class='positive'>&#10004; The headline's character count seems fine. You're at " + data.char_count.length + ", scoring "+ data.char_count.score  +" / 100.</span><br>";
                         } else {
-                            html += "<span class='negative'>&bigotimes; Character length could be better. Aim for 55 or so characters.</span><br>";
+                            html += "<span class='negative'>&bigotimes; Character length could be better. Aim for 55 or so characters. You're now at " + data.char_count.length + ", scoring " + data.char_count.score + " / 100.</span><br>";
                             if (data.suggestions.char_length !== undefined) {
                                 html += "<span class='negative'>" + data.suggestions.char_length.message + " " + data.suggestions.char_length.suggestion + "</span><br>";
                             }
                         }
 
                         if (data.word_count.summary == 'positive') {
-                            html += "<span class='positive'>&#10004; The headline's word count seems fine.</span><br>";
+                            html += "<span class='positive'>&#10004; The headline's word count seems fine. You're at " + data.word_count.length + " words, scoring "+ data.char_count.score  +" / 100.</span><br>";
                         } else {
-                            html += "<span class='negative'>&bigotimes; Word count could be better. Aim for 6 words for best results.</span><br>";
+                            html += "<span class='negative'>&bigotimes; Word count could be better. Aim for 6 words for best results. You're now at " + data.word_count.length + ", scoring " + data.word_count.score + " / 100.</span><br>";
                             if (data.suggestions.word_length !== undefined) {
                                 html += "<span class='negative'>" + data.suggestions.word_length.message + " " + data.suggestions.word_length.suggestion + "</span><br>";
                             }
@@ -128,10 +128,10 @@ chrome.extension.sendMessage({}, function (response) {
                             if (data.suggestions.common_words !== undefined) {
                                 html += "<span class='negative'>" + data.suggestions.common_words.message + " " + data.suggestions.common_words.suggestion + "</span><br>";
                             }
-                            html += "<ul><li>" + data.word_balance.common.percentage + "% of your words are common. Common words make up the basic structure of readable headlines. Great headlines are usually made up of 20-30% common words.</li>";
-                            html += "<li>" + data.word_balance.uncommon.percentage + "% of your words are uncommon. Uncommon words occur less frequently than common words, but give your headline substance. Great headlines are usually made up of 10-20% uncommon words..</li>";
-                            html += "<li>" + data.word_balance.emotional.percentage + "% of your words are emotional. Emotional words frequently stir an emotional response in the reader. They have been proven to drive clicks and shares. Great headlines are usually made up of 10-15% emotional words.</li>";
-                            html += "<li>" + data.word_balance.power.percentage + "% of your words are power words. Power words or phrases indicate intense trigger words that frequently command a readers attention and action. Great headlines contain at least 1 power phrase or word.</li></ul>";
+                            html += "<ul><li><span class='bold score'>" + data.word_balance.common.percentage + "%</span> of your words are common. Common words make up the basic structure of readable headlines. Great headlines are usually made up of 20-30% common words. <span class='bold'>Common words are words like: a, about, after, and, her, how, this, why, these, what, your, things...</span></li>";
+                            html += "<li><span class='bold score'>" + data.word_balance.uncommon.percentage + "%</span> of your words are uncommon. Uncommon words occur less frequently than common words, but give your headline substance. Great headlines are usually made up of 10-20% uncommon words. <span class='bold'>Examples: actually, awesome, baby, beautiful, heart, here, more, right, see, social, world, year...</span></li>";
+                            html += "<li><span class='bold score'>" + data.word_balance.emotional.percentage + "%</span> of your words are emotional. Emotional words frequently stir an emotional response in the reader. They have been proven to drive clicks and shares. Great headlines are usually made up of 10-15% emotional words. <span class='bold'>Examples: absolutely, attractive, blissful, bravery, confessions, danger, dollar, spotlight, valuable, worry, wonderful, zinger...</span></li>";
+                            html += "<li><span class='bold score'>" + data.word_balance.power.percentage + "%</span> of your words are power words. Power words or phrases indicate intense trigger words that frequently command a readers attention and action. Great headlines contain at least 1 power phrase or word. <span class='bold'>Examples of power phrases: for the first time, in the world, make you, no questions asked, pay zero, thing I've ever seen, what this, will make you, you see what, you need to know, you see, what happened to...</span></li></ul>";
                         }
 
                         $(scoreInfo).html(html);
