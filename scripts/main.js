@@ -42,8 +42,8 @@ chrome.extension.sendMessage({}, function (response) {
 
                     var matches = getAllMatches(rx, content);
                     $.each(matches, function (i, el) {
-                        if (!linkOk(el)) {
-                            errorMessages.push("Relative link found: " + el);
+                        if (!linkOk(el[1])) {
+                            errorMessages.push("Relative link found: " + el[1]);
                         }
                     });
 
@@ -82,7 +82,6 @@ chrome.extension.sendMessage({}, function (response) {
                 $(scoreFrame).append(scoreBar);
                 $(scoreFrame).append(scoreInfo);
                 $(scoreFrame).click(function (e) {
-                    console.log("Toggle");
                     $(scoreInfo).toggle()
                 });
 
@@ -158,6 +157,8 @@ chrome.extension.sendMessage({}, function (response) {
                 });
                 $(titleWrap).append(scoreFrame);
                 $(titleWrap).append(titleCapBtn);
+
+                addSubHeadingsButton(titleWrap, editorField);
             }
 
             // Add copy tags button
@@ -229,7 +230,7 @@ chrome.extension.sendMessage({}, function (response) {
                     var cName = $(cLabel).text();
                     var cValue = $(cInput).val();
 
-                    innerHtml += "<input type='button' class='catbutton button button-primary' value='"+ cName +"' />";
+                    innerHtml += "<input type='button' class='catbutton button button-primary' value='" + cName + "' />";
 
                 });
 
@@ -242,7 +243,7 @@ chrome.extension.sendMessage({}, function (response) {
             datepicker.type = 'text';
             datepicker.placeholder = 'Date and time';
             $(datepicker).datetimepicker();
-            $(datepicker).change(function(e){
+            $(datepicker).change(function (e) {
 
                 // WP default datetime field IDs
                 // mm = month / 01 - 12
@@ -274,9 +275,121 @@ chrome.extension.sendMessage({}, function (response) {
 });
 
 function hideUnnecessaryElements() {
-    var cacheBanner = $("#edge-mode");
-    if ($(cacheBanner).length) {
-        $(cacheBanner).remove();
-    }
+    $("#edge-mode").remove();
     $(".timestamp-wrap").hide();
+    $(".CosheduleButtonContainer").remove();
+    $(".misc-pub-section input[name='publish_to_discourse']").parent().parent().parent().remove();
+}
+
+function addSubHeadingsButton(titleWrap, editorfield) {
+    var subBtn = document.createElement('button');
+    subBtn.innerText = "Capitalize subheadings";
+    subBtn.className = "wp-core-ui button bandaid-button-title";
+
+    var rx = /<(h[2-6]).+>(.+)<\/\1>/ig;
+
+    $(subBtn).click(function (e) {
+        e.preventDefault();
+        var content = $(editorfield).val();
+        var matches = getAllMatches(rx, content);
+        var fixable = [];
+        var processed = [];
+        $.each(matches, function (i, match) {
+            var orig = match[2];
+            var capped = capitalize(orig);
+            if (processed.indexOf(capped) > -1) {
+                return true;
+            }
+            processed.push(capped);
+            if (orig !== capped) {
+                // Heading can be capitalized
+                fixable.push({original: orig, fixed: capped});
+            }
+        });
+        // Build list of capitalizable headings
+        var list = document.createElement('p');
+        $(list).text("Nothing to optimize, all subheadings look good!");
+        var actionButton;
+        if (fixable.length) {
+            list = document.createElement('ul');
+            $.each(fixable, function (i, obj) {
+
+                var li = document.createElement('li');
+                li.className = "bandaid-cappable-heading";
+
+                var label = document.createElement('label');
+                $(label).text('Fix: "' + obj.original + '" => "' + obj.fixed + '"');
+
+                var checkbox = document.createElement('input');
+                checkbox.type = "checkbox";
+                checkbox.name = "cappable[]";
+                checkbox.value = obj.original;
+                $(checkbox).prop('checked', true);
+                $(checkbox).change(function (e) {
+                    if (!$(this).is(":checked")) {
+                        $(".check-all").prop("checked", false);
+                    }
+                });
+
+                $(label).prepend(checkbox);
+                $(li).append(label);
+                $(list).append(li);
+
+                actionButton = document.createElement("button");
+                actionButton.className = "wp-core-ui button button-primary";
+                actionButton.innerText = "Fix selected";
+                $(actionButton).click(function (e) {
+                    var checkboxes = $(".bandaid-cappable-heading input:checked");
+                    $.each(checkboxes, function (i, obj) {
+                        var value = $(obj).val();
+                        content = content.replace(value, capitalize(value));
+                    });
+                    $(editorfield).val(content);
+                    hideModal();
+                });
+            });
+
+            var li = document.createElement('li');
+            li.className = "check-all-li";
+            var label = document.createElement('label');
+            $(label).text('Check all');
+
+            var checkbox = document.createElement('input');
+            checkbox.type = "checkbox";
+            checkbox.className = "check-all";
+            $(checkbox).prop('checked', true);
+
+            function checkAll(e) {
+                var $checkboxes = $(".bandaid-cappable-heading input");
+                if ($(this).is(":checked")) {
+                    $checkboxes.prop('checked', true);
+                    $(".check-all").prop('checked', true);
+                } else {
+                    $checkboxes.prop('checked', false);
+                    $(".check-all").prop('checked', false);
+                }
+            }
+
+            var len = fixable.length;
+            if (len > 1) {
+                $(label).prepend(checkbox);
+                $(li).append(label);
+                $(list).prepend(li);
+                $(checkbox).change(checkAll);
+            }
+
+            if (len > 10) {
+                var l1 = $(li).clone();
+                $(list).append(l1);
+                $(l1).find('input').change(checkAll);
+            }
+        }
+        showModal('Fixable subheadings', list, actionButton);
+    });
+
+    $(titleWrap).append(subBtn);
+}
+
+function lol() {
+    alert("lol");
 }

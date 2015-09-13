@@ -11,7 +11,7 @@ function getAllMatches(myRe, str) {
     var returnData = [];
     var myArray;
     while ((myArray = myRe.exec(str)) !== null) {
-        returnData.push(myArray[1]);
+        returnData.push(myArray);
     }
     return returnData;
 }
@@ -40,4 +40,15 @@ function copyTextToClipboard(text) {
     copyFrom.select();
     document.execCommand('copy');
     body.removeChild(copyFrom);
+}
+
+/**
+ * Turns a DOM element tree into HTML. Note that all event listeners are lost.
+ * @param parentElement
+ * @returns {*|jQuery}
+ */
+function getHtmlFromElements(parentElement) {
+    var holder = document.createElement('div');
+    $(holder).append(parentElement);
+    return $(holder).html();
 }

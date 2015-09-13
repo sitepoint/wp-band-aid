@@ -16,3 +16,6 @@ Install via [this link](https://chrome.google.com/webstore/detail/wp-band-aid/ae
 - removed Total Cache header popup
 - headline analyzer included in the UI
 - the schedule fields for date and time have been replaced with a datepicker
+- the subheadings in the text can now also be programatically capitalized - new button added under the title field
+- removed the "Publish to Discourse" checkbox
+- removed the "Is this headline OK" button (not needed since we've got the analyzer built in now)
