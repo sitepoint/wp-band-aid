@@ -1,6 +1,6 @@
 {
   "name": "WP Band Aid",
-  "version": "0.5.1",
+  "version": "0.6",
   "manifest_version": 2,
   "description": "This extension is for internal use at SitePoint. It makes using the WP back end a bit easier.",
   "background": {
@@ -20,10 +20,15 @@
       ],
       "js": [
         "lib/jquery-2.1.1.min.js",
+        "lib/jquery.datetimepicker.js",
+        "scripts/capitalize.js",
+        "scripts/utilities.js",
+        "scripts/modal.js",
         "scripts/main.js"
       ],
       "css": [
-        "css/styles.css"
+        "css/styles.css",
+        "css/jquery.datetimepicker.css"
       ],
       "run_at": "document_idle"
     }

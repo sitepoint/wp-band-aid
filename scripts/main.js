@@ -146,7 +146,7 @@ chrome.extension.sendMessage({}, function (response) {
                             html += "<h4>Other advice</h4>"
                             html += "<ul>";
                             $.each(otherAdviceMessages, function (i, msg) {
-                               html += "<li>" + msg + "</li>";
+                                html += "<li>" + msg + "</li>";
                             });
                             html += "</ul>";
                         }
@@ -204,8 +204,8 @@ chrome.extension.sendMessage({}, function (response) {
                         $("#serieschecklist li").removeClass("hidden");
                     }
                     $.each(seriesChecklist, function (index, listItem) {
-                        var seriesName = $(listItem).text();
-                        if (seriesName.indexOf(text) > -1) {
+                        var seriesName = $(listItem).text().toLowerCase();
+                        if (seriesName.indexOf(text.toLowerCase()) > -1) {
                             $(listItem).removeClass('hidden');
                         } else {
                             $(listItem).addClass('hidden');
@@ -214,203 +214,69 @@ chrome.extension.sendMessage({}, function (response) {
                 });
             }
 
-            var cacheBanner = $("#edge-mode");
-            if ($(cacheBanner).length) {
-                $(cacheBanner).remove();
-            }
+            // Add new tab to categories frame
+            //$("#category-tabs").append('<li><a id="catPopLink" href="javascript:void(0);">Pop out</a></li>');
+            // @todo
+            var catlist = $("#categorychecklist");
+            $("#catPopLink").click(function (e) {
+
+                var innerHtml = "<input name='category_selections' type='hidden'>";
+
+                $.each($(catlist).children('li'), function (i, child) {
+
+                    var cLabel = $(child).children('label');
+                    var cInput = $(cLabel).children('input');
+                    var cName = $(cLabel).text();
+                    var cValue = $(cInput).val();
+
+                    innerHtml += "<input type='button' class='catbutton button button-primary' value='"+ cName +"' />";
+
+                });
+
+                showModal("Categories - Rich Selection", innerHtml);
+            });
+
+            // Add datepicker
+
+            var datepicker = document.createElement('input');
+            datepicker.type = 'text';
+            datepicker.placeholder = 'Date and time';
+            $(datepicker).datetimepicker();
+            $(datepicker).change(function(e){
+
+                // WP default datetime field IDs
+                // mm = month / 01 - 12
+                // jj = day
+                // aa = year 4 digit
+                // hh = hour
+                // mn = min
+
+                var dtSplit = $(this).val().split(' ');
+                var dateSplit = dtSplit[0].split('/');
+                var timeSplit = dtSplit[1].split(':');
+
+                $("#mm").val(dateSplit[1]);
+                $("#jj").val(dateSplit[2]);
+                $("#aa").val(dateSplit[0]);
+
+                $("#hh").val(timeSplit[0]);
+                $("#mn").val(timeSplit[1]);
+
+            });
+            $("#timestampdiv").prepend(datepicker);
+
+            // -----------------------------------
+
+            hideUnnecessaryElements();
 
         }
     }, 10);
 });
 
-function getAllMatches(myRe, str) {
-    var returnData = [];
-    var myArray;
-    while ((myArray = myRe.exec(str)) !== null) {
-        returnData.push(myArray[1]);
+function hideUnnecessaryElements() {
+    var cacheBanner = $("#edge-mode");
+    if ($(cacheBanner).length) {
+        $(cacheBanner).remove();
     }
-    return returnData;
-}
-
-function linkOk(url) {
-    var r = new RegExp('^(?:[a-z]+:)?//', 'i');
-    return r.test(url);
-}
-
-function copyTextToClipboard(text) {
-    var copyFrom = document.createElement("textarea");
-    copyFrom.textContent = text;
-    var body = document.getElementsByTagName('body')[0];
-    body.appendChild(copyFrom);
-    copyFrom.select();
-    document.execCommand('copy');
-    body.removeChild(copyFrom);
-}
-
-var prepositions = [
-    'a',
-    'abaft',
-    'aboard',
-    'about',
-    'above',
-    'absent',
-    'across',
-    'afore',
-    'after',
-    'against',
-    'along',
-    'alongside',
-    'amid',
-    'amidst',
-    'among',
-    'amongst',
-    'an',
-    'apropos',
-    'apud',
-    'around',
-    'as',
-    'aside',
-    'astride',
-    'at',
-    'athwart',
-    'atop',
-    'barring',
-    'before',
-    'behind',
-    'below',
-    'beneath',
-    'beside',
-    'besides',
-    'between',
-    'beyond',
-    'but',
-    'by',
-    'circa',
-    'concerning',
-    'despite',
-    'down',
-    'during',
-    'except',
-    'excluding',
-    'failing',
-    'following',
-    'for',
-    'from',
-    'given',
-    'in',
-    'including',
-    'inside',
-    'into',
-    'lest',
-    'like',
-    'mid',
-    'midst',
-    'minus',
-    'modulo',
-    'near',
-    'next',
-    'notwithstanding',
-    'of',
-    'off',
-    'on',
-    'onto',
-    'opposite',
-    'out',
-    'outside',
-    'over',
-    'pace',
-    'past',
-    'per',
-    'plus',
-    'pro',
-    'qua',
-    'regarding',
-    'round',
-    'sans',
-    'since',
-    'than',
-    'through',
-    'thru',
-    'throughout',
-    'thruout',
-    'till',
-    'times',
-    'to',
-    'toward',
-    'towards',
-    'under',
-    'underneath',
-    'unlike',
-    'until',
-    'unto',
-    'up',
-    'upon',
-    'versus',
-    'vs\.',
-    'vs',
-    'v\.',
-    'v',
-    'via',
-    'vice',
-    'with',
-    'within',
-    'without',
-    'worth'
-];
-var articles = [
-    'a',
-    'an',
-    'the'
-];
-var conjunctions = [
-    'and',
-    'but',
-    'for',
-    'so',
-    'nor',
-    'or',
-    'yet'
-];
-var punct = "([!\"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]*)";
-
-var all_lower_case = '(' + (prepositions.concat(articles).concat(conjunctions)).join('|') + ')';
-
-var capitalize = function (title) {
-    var parts = [], split = /[:.;?!] |(?: |^)["Ò]/g, index = 0;
-
-    title = title.replace(/[\u2018\u2019]/g, "'")
-        .replace(/[\u201C\u201D]/g, '"');
-
-    while (true) {
-        var m = split.exec(title);
-
-        parts.push(title.substring(index, m ? m.index : title.length)
-            .replace(/\b([A-Za-z][a-z.'Õ]*)\b/g, function (all) {
-                return /[A-Za-z]\.[A-Za-z]/.test(all) ? all : upper(all);
-            })
-            .replace(RegExp("\\b" + all_lower_case + "\\b", "ig"), lower)
-            .replace(RegExp("^" + punct + all_lower_case + "\\b", "ig"), function (all, punct, word) {
-                return punct + upper(word);
-            })
-            .replace(RegExp("\\b" + all_lower_case + punct + "$", "ig"), upper));
-
-        index = split.lastIndex;
-
-        if (m) parts.push(m[0]);
-        else break;
-    }
-
-    return parts.join("").replace(/ V(s?)\. /ig, " v$1. ")
-        .replace(/(['Õ])S\b/ig, "$1s")
-        .replace(/\b(AT&T|Q&A)\b/ig, function (all) {
-            return all.toUpperCase();
-        });
-};
-
-function lower(word) {
-    return word.toLowerCase();
-}
-
-function upper(word) {
-    return word.substr(0, 1).toUpperCase() + word.substr(1);
+    $(".timestamp-wrap").hide();
 }

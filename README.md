@@ -15,3 +15,4 @@ Install via [this link](https://chrome.google.com/webstore/detail/wp-band-aid/ae
 - the series input field which typically allows you to add a new series right from the Add / Edit post page now also serves as an insta-filter. Just type into it and unwanted series automatically hide
 - removed Total Cache header popup
 - headline analyzer included in the UI
+- the schedule fields for date and time have been replaced with a datepicker
