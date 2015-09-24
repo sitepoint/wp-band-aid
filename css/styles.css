@@ -147,3 +147,27 @@
     height: 100%;
     background-color: rgba(0,0,0,0.2);
 }
+
+.post-info-table {
+    width: 100%;
+    border-spacing: 0;
+    border: none;
+    background-color: #f7f7f7;
+    z-index: 999;
+}
+
+.post-info-table tr {
+    border: none;
+}
+
+.post-info-table.upper {
+    display: none;
+    border-top: 1px solid darkgrey;
+    margin-top: 5px;
+    padding-top: 3px;
+}
+
+.post-info-table td {
+    font-size: 12px;
+    border: none;
+}

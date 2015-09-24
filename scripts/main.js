@@ -26,7 +26,35 @@ chrome.extension.sendMessage({}, function (response) {
                 $(cell).attr('colspan', 2);
                 row.className = "proofreader-main-row";
                 row.appendChild(cell);
-                $("#post-status-info tbody").prepend(row);
+
+                var table = $("#post-status-info");
+                $(table).find('tbody').prepend(row);
+
+                // ----------------------------------------------------
+
+                // Add secondary information row above text area
+                var tableClone = document.createElement('table');
+                tableClone.className = "post-info-table upper";
+                $(tableClone).append('<tbody></tbody>');
+                $(tableClone).find('tbody').prepend($(row).clone());
+                //$(tableClone).insertBefore("#wp-content-editor-container");
+                $("#ed_toolbar").append(tableClone);
+
+
+                // Check if editor expand toggle is on
+
+                var toggle = $('#editor-expand-toggle');
+                $(toggle).change(function(e) {
+                    if ($(toggle).is(':checked')) {
+                        $("table.post-info-table.upper").show();
+                    } else {
+                        $("table.post-info-table.upper").hide();
+                    }
+                });
+                $(toggle).change();
+
+
+                // ----------------------------------------------------
 
                 var checker = setInterval(function () {
 
@@ -49,16 +77,16 @@ chrome.extension.sendMessage({}, function (response) {
 
                     if (errorMessages.length && content != "") {
                         $(editorField).addClass('error');
-                        $(row).addClass("error");
+                        $(".proofreader-main-row").addClass("error");
                         var cellText = "";
                         $.each(errorMessages, function (i, msg) {
                             cellText += msg + "<br>";
                         });
-                        $(cell).html(cellText)
+                        $(".proofreader-main-row td").html(cellText)
                     } else {
                         $(editorField).removeClass('error');
-                        $(row).removeClass("error");
-                        $(cell).text("All good");
+                        $(".proofreader-main-row").removeClass("error");
+                        $(".proofreader-main-row td").text("All good");
                     }
 
                 }, 2000);
