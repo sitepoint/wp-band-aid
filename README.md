@@ -21,3 +21,4 @@ Install via [this link](https://chrome.google.com/webstore/detail/wp-band-aid/ae
 - removed the "Is this headline OK" button (not needed since we've got the analyzer built in now)
 - makes the syntax highlighter default to the selected primary category, if there's a match
 - buttons "Copy Link" and "Rebuild Link" were added next to the permalink part, under the title field. The Rebuild one refreshes the slug if you changed the title, and the Copy one copies the full link (http://sitepoint.com prefix and all) to the clipboard.
+- added context menu option which lets users copy the title / description of the current page, or if right clicking on a link, the title / description of the target page. Useful when writing newsletter.

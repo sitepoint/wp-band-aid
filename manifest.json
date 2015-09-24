@@ -1,10 +1,16 @@
 {
   "name": "WP Band Aid",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "manifest_version": 2,
   "description": "This extension is for internal use at SitePoint. It makes using the WP back end a bit easier.",
   "background": {
-    "page": "background.html"
+    "scripts": [
+      "fancy-settings/source/lib/store.js",
+      "lib/jquery-2.1.1.min.js",
+      "scripts/capitalize.js",
+      "scripts/utilities.js",
+      "scripts/background.js"
+    ]
   },
   "page_action": {
     "default_icon": {
@@ -13,10 +19,14 @@
     },
     "default_title": "WP Band Aid"
   },
+  "permissions": [
+    "contextMenus", "activeTab", "tabs"
+  ],
   "content_scripts": [
     {
       "matches": [
-        "https://www.sitepoint.com/wp-admin/*"
+        "https://www.sitepoint.com/*",
+        "http://www.sitepoint.com/*"
       ],
       "js": [
         "lib/jquery-2.1.1.min.js",
