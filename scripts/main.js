@@ -201,6 +201,8 @@ chrome.extension.sendMessage({}, function (response) {
                 $(titleWrap).append(titleCapBtn);
 
                 addSubHeadingsButton(titleWrap, editorField);
+                addRebuildSlugButton(titleWrap);
+                addCopyPermalinkButton();
             }
 
             // Add copy tags button
@@ -430,6 +432,45 @@ function addSubHeadingsButton(titleWrap, editorfield) {
     });
 
     $(titleWrap).append(subBtn);
+}
+
+function addRebuildSlugButton(titleWrap) {
+    var subBtn = document.createElement('a');
+    subBtn.innerText = "Rebuild Link";
+    subBtn.className = "button button-small";
+
+    $(subBtn).click(function(e) {
+        e.preventDefault();
+        $("#editable-post-name").click();
+
+        var int1 = setInterval(function(){
+            var slugInput = $('#new-post-slug');
+            if (slugInput.length) {
+                slugInput.val("");
+                clearInterval(int1);
+
+                var int2 = setInterval(function(){
+                    var saveButton = $("#edit-slug-buttons a.save.button.button-small");
+                    if (saveButton.length) {
+                        saveButton[0].click();
+                    }
+                    clearInterval(int2);
+                }, 100);
+            }
+        }, 100);
+    });
+
+    $('#edit-slug-box').parent().append(subBtn);
+}
+
+function addCopyPermalinkButton() {
+    var a = document.createElement('a');
+    a.className = 'button button-small bandaid-copy-link';
+    a.innerText = "Copy Link";
+    $(a).click(function(e){
+        copyTextToClipboard("http://sitepoint.com/"+$("#editable-post-name-full").text());
+    });
+    $('#edit-slug-box').parent().append(a);
 }
 
 function lol() {

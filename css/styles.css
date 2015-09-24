@@ -171,3 +171,16 @@
     font-size: 12px;
     border: none;
 }
+
+#edit-slug-box {
+    display: inline !important;
+    padding: 0 !important;
+}
+
+#titlediv div.inside {
+    margin-top: 5px !important;
+}
+
+.bandaid-copy-link {
+    margin-left: 4px !important;
+}
