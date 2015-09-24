@@ -19,3 +19,4 @@ Install via [this link](https://chrome.google.com/webstore/detail/wp-band-aid/ae
 - the subheadings in the text can now also be programatically capitalized - new button added under the title field
 - removed the "Publish to Discourse" checkbox
 - removed the "Is this headline OK" button (not needed since we've got the analyzer built in now)
+- makes the syntax highlighter default to the selected primary category, if there's a match

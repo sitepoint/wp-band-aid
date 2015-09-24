@@ -44,7 +44,7 @@ chrome.extension.sendMessage({}, function (response) {
                 // Check if editor expand toggle is on
 
                 var toggle = $('#editor-expand-toggle');
-                $(toggle).change(function(e) {
+                $(toggle).change(function (e) {
                     if ($(toggle).is(':checked')) {
                         $("table.post-info-table.upper").show();
                     } else {
@@ -92,6 +92,20 @@ chrome.extension.sendMessage({}, function (response) {
                 }, 2000);
 
             }
+
+            // Make the syntax highlighting default to the primary category, if available
+            $("#primary_category").change(function (e) {
+                var optionText = $(this).find("option:selected").text();
+                var syntaxSelector = $('select[name="base_syntax"]');
+
+                var syntaxOptionValue = $(syntaxSelector).find('option').filter(function () {
+                    return $(this).text().toLowerCase() == optionText.toLowerCase();
+                }).val();
+
+                if (syntaxOptionValue !== undefined) {
+                    $(syntaxSelector).val(syntaxOptionValue);
+                }
+            });
 
             // Add the headline analysis score bar and capitalizer
 
