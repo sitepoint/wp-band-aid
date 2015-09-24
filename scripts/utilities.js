@@ -24,7 +24,7 @@ function getAllMatches(myRe, str) {
  */
 function linkOk(url) {
     var r = new RegExp('^(?:[a-z]+:)?//', 'i');
-    return r.test(url);
+    return (r.test(url) || url.startsWith("mailto:") || url.startsWith("#"));
 }
 
 /**
