@@ -36,6 +36,23 @@ chrome.extension.sendMessage({}, function (response) {
             if ($(editorField).length) {
                 // Editor field found
 
+
+                // Add MD to HTML button
+                var $convertButton = $("<input />", {
+                  type: "button",
+                  value: "MD",
+                  class: "ed_button button button-small",
+                  title: "Convert MD to HTMLs",
+                  click: function(){
+                      var md = $("#content").val();
+                      var html = converter.makeHtml(md);
+                      $("#content").val(html);
+                  }
+                });
+                $("#ed_toolbar").append($convertButton);
+                var converter = new showdown.Converter();
+
+
                 // Add information row
                 var row = document.createElement('tr');
                 var cell = document.createElement('td');
@@ -457,23 +474,10 @@ function addRebuildSlugButton(titleWrap) {
 
     $(subBtn).click(function(e) {
         e.preventDefault();
-        $("#editable-post-name").click();
-
-        var int1 = setInterval(function(){
-            var slugInput = $('#new-post-slug');
-            if (slugInput.length) {
-                slugInput.val("");
-                clearInterval(int1);
-
-                var int2 = setInterval(function(){
-                    var saveButton = $("#edit-slug-buttons a.save.button.button-small");
-                    if (saveButton.length) {
-                        saveButton[0].click();
-                    }
-                    clearInterval(int2);
-                }, 100);
-            }
-        }, 100);
+        $("button.edit-slug").click();
+        var title = $("input[name='post_title']").val();
+        $("#new-post-slug").val(title);
+        $("button.save").click();
     });
 
     $('#edit-slug-box').parent().append(subBtn);
