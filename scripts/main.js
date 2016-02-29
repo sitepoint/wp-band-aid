@@ -474,23 +474,10 @@ function addRebuildSlugButton(titleWrap) {
 
     $(subBtn).click(function(e) {
         e.preventDefault();
-        $("#editable-post-name").click();
-
-        var int1 = setInterval(function(){
-            var slugInput = $('#new-post-slug');
-            if (slugInput.length) {
-                slugInput.val("");
-                clearInterval(int1);
-
-                var int2 = setInterval(function(){
-                    var saveButton = $("#edit-slug-buttons a.save.button.button-small");
-                    if (saveButton.length) {
-                        saveButton[0].click();
-                    }
-                    clearInterval(int2);
-                }, 100);
-            }
-        }, 100);
+        $("button.edit-slug").click();
+        var title = $("input[name='post_title']").val();
+        $("#new-post-slug").val(title);
+        $("button.save").click();
     });
 
     $('#edit-slug-box').parent().append(subBtn);
