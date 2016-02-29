@@ -36,6 +36,23 @@ chrome.extension.sendMessage({}, function (response) {
             if ($(editorField).length) {
                 // Editor field found
 
+
+                // Add MD to HTML button
+                var $convertButton = $("<input />", {
+                  type: "button",
+                  value: "MD",
+                  class: "ed_button button button-small",
+                  title: "Convert MD to HTMLs",
+                  click: function(){
+                      var md = $("#content").val();
+                      var html = converter.makeHtml(md);
+                      $("#content").val(html);
+                  }
+                });
+                $("#ed_toolbar").append($convertButton);
+                var converter = new showdown.Converter();
+
+
                 // Add information row
                 var row = document.createElement('tr');
                 var cell = document.createElement('td');
