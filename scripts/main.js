@@ -471,7 +471,7 @@ function addCopyPermalinkButton() {
     a.className = 'button button-small bandaid-copy-link';
     a.innerText = "Copy Link";
     $(a).click(function(e){
-        copyTextToClipboard("http://sitepoint.com/"+$("#editable-post-name-full").text());
+        copyTextToClipboard("http://www.sitepoint.com/"+$("#editable-post-name-full").text());
     });
     $('#edit-slug-box').parent().append(a);
 }
