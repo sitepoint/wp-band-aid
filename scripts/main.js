@@ -31,6 +31,25 @@ chrome.extension.sendMessage({}, function (response) {
             var titleWrap = $("#titlewrap");
             var titleInput = $("#title");
 
+            // If toolbar present append MD -> HTML button
+            var $editorToolbar = $("#ed_toolbar");
+            if ($editorToolbar.length) {
+                var converter = getShowdownConverter();
+                var $mainTextArea = $("#content");
+                var $convertButton = $("<input />", {
+                    type: "button",
+                    value: "MD",
+                    class: "ed_button button button-small",
+                    title: "Convert MD to HTMLs",
+                    click: function(){
+                        var md = $mainTextArea.val();
+                        var html = convertToMarkdown(converter, md);
+                        $mainTextArea.val(html);
+                    }
+                });
+                $editorToolbar.append($convertButton);
+            }
+
             // Check editor text for strings and patterns
             var editorField = $(".wp-editor-area");
             if ($(editorField).length) {
@@ -476,6 +495,25 @@ function addCopyPermalinkButton() {
     $('#edit-slug-box').parent().append(a);
 }
 
-function lol() {
-    alert("lol");
+function getShowdownConverter(){
+    var converter = new showdown.Converter();
+
+    // Don't convert underscores in URLs
+    // https://github.com/showdownjs/showdown/issues/96
+    converter.setOption('literalMidWordUnderscores', true);
+    converter.setOption('tables', true);
+    return converter;
+}
+
+function convertToMarkdown(converter, md){
+    var html = converter.makeHtml(md);
+
+    html = html.replace(/<code class="js language-js">/g, '<code class="javascript language-javascript">');
+    html = html.replace(/<code class="coffee language-coffee">/g, '<code class="coffeecript language-coffeescript">');
+    html = html.replace(/<code class="json language-json">/g, '<code class="javascript language-javascript">');
+    html = html.replace(/<code class="html language-html">/g, '<code class="markup language-markup">');
+    html = html.replace(/<code class="sh language-sh">/g, '<code class="bash language-bash">');
+    html = html.replace(/(.*?\n\n.*?\n\n)/m, '$1[author_more]\n\n');
+
+    return html;
 }
