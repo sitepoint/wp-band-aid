@@ -513,7 +513,6 @@ function convertToMarkdown(converter, md){
     html = html.replace(/<code class="json language-json">/g, '<code class="javascript language-javascript">');
     html = html.replace(/<code class="html language-html">/g, '<code class="markup language-markup">');
     html = html.replace(/<code class="sh language-sh">/g, '<code class="bash language-bash">');
-    html = html.replace(/(.*?\n\n.*?\n\n)/m, '$1[author_more]\n\n');
 
     return html;
 }
