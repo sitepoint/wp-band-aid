@@ -50,6 +50,27 @@ chrome.extension.sendMessage({}, function (response) {
                 $editorToolbar.append($convertButton);
             }
 
+            // Add event listener to 'Save Draft' and 'Publish' buttons
+            // to prevent article being saved/scheduled with invalid slug
+            var $publishButton = $("#publish");
+            var $saveDraftButton = $("#save-post");
+            var $scheduleButtons = $publishButton.add($saveDraftButton);
+
+            if ($scheduleButtons.length) {
+                $scheduleButtons.on("click", function(e){
+                    if(slugIsInvalid()){
+                        return confirm("URL looks dodgy! Are you sure?");
+                    }
+                });
+            }
+
+            function slugIsInvalid(){
+                var slugVal = $("#editable-post-name-full").text();
+                return typeof slugVal === "undefined" ||
+                       !slugVal.match(/^\w+-\w+.*?$/) ||
+                       /^\d*$/.test(slugVal.replace(/-/, ''));
+            }
+
             // Check editor text for strings and patterns
             var editorField = $(".wp-editor-area");
             if ($(editorField).length) {
