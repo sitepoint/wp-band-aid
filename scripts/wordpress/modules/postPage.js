@@ -1,10 +1,7 @@
 "use strict";
 
-var Page = (function() {
+var PostPage = (function() {
   function hideUnnecessaryElements(){
-    // W3-Total Cahe banner
-    $("#edge-mode").remove();
-
     // WP own date input
     // Why are we hiding this, not removing it?
     $(".timestamp-wrap").hide();

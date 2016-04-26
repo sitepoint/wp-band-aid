@@ -27,20 +27,17 @@
 
   "content_scripts": [
     {
-      "matches": [
-        "https://www.sitepoint.com/*",
-        "http://www.sitepoint.com/*"
-      ],
-      "js": [
-        "lib/jquery-2.1.1.min.js",
-        "scripts/main.js"
-      ],
+      "matches": [ "*://*.sitepoint.com/*" ],
+      "js": [ "lib/jquery-2.1.1.min.js", "scripts/main.js" ],
       "run_at": "document_idle"
     },
     {
-      "matches": [
-        "https://www.sitepoint.com/wp-admin/post*"
-      ],
+      "matches": [ "https://www.sitepoint.com/wp-admin/*" ],
+      "js": [ "scripts/wordpress/modules/backend.js" ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [ "https://www.sitepoint.com/wp-admin/post*" ],
       "js": [
         "lib/jquery.datetimepicker.js",
         "lib/showdown.min.js",
@@ -54,13 +51,10 @@
         "scripts/wordpress/modules/tagsWidget.js",
         "scripts/wordpress/modules/seriesWidget.js",
         "scripts/wordpress/modules/syntaxHighlightingWidget.js",
-        "scripts/wordpress/modules/page.js",
+        "scripts/wordpress/modules/postPage.js",
         "scripts/wordpress/newPostPage.js"
       ],
-      "css": [
-        "css/styles.css",
-        "css/jquery.datetimepicker.css"
-      ],
+      "css": [ "css/styles.css", "css/jquery.datetimepicker.css" ],
       "run_at": "document_idle"
     }
   ],

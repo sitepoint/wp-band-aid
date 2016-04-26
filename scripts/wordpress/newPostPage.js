@@ -39,7 +39,7 @@ chrome.extension.sendMessage({}, function (response) {
 
       // Generic changes applied to whole page
       // Hides unnecessary elements
-      Page.init();
+      PostPage.init();
     }
   }, 10);
 });
