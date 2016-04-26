@@ -6,7 +6,8 @@ var Page = (function() {
     $("#edge-mode").remove();
 
     // WP own date input
-    $(".timestamp-wrap").remove();
+    // Why are we hiding this, not removing it?
+    $(".timestamp-wrap").hide();
 
     // Is this a good headline?
     $(".CosheduleButtonContainer").remove();
