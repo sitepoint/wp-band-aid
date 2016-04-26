@@ -7,8 +7,8 @@
 
   "background": {
     "scripts": [
-      "fancy-settings/source/lib/store.js",
       "lib/jquery-2.1.1.min.js",
+      "scripts/utils/utilities.js",
       "scripts/background.js"
     ]
   },
@@ -33,20 +33,29 @@
       ],
       "js": [
         "lib/jquery-2.1.1.min.js",
+        "scripts/main.js"
+      ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [
+        "https://www.sitepoint.com/wp-admin/post*"
+      ],
+      "js": [
         "lib/jquery.datetimepicker.js",
         "lib/showdown.min.js",
         "scripts/utils/capitalize.js",
         "scripts/utils/modal.js",
         "scripts/utils/utilities.js",
-        "scripts/modules/editorToolbar.js",
-        "scripts/modules/titleArea.js",
-        "scripts/modules/editorPane.js",
-        "scripts/modules/publishWidget.js",
-        "scripts/modules/tagsWidget.js",
-        "scripts/modules/seriesWidget.js",
-        "scripts/modules/syntaxHighlightingWidget.js",
-        "scripts/modules/page.js",
-        "scripts/main.js"
+        "scripts/wordpress/modules/editorToolbar.js",
+        "scripts/wordpress/modules/titleArea.js",
+        "scripts/wordpress/modules/editorPane.js",
+        "scripts/wordpress/modules/publishWidget.js",
+        "scripts/wordpress/modules/tagsWidget.js",
+        "scripts/wordpress/modules/seriesWidget.js",
+        "scripts/wordpress/modules/syntaxHighlightingWidget.js",
+        "scripts/wordpress/modules/page.js",
+        "scripts/wordpress/newPostPage.js"
       ],
       "css": [
         "css/styles.css",
