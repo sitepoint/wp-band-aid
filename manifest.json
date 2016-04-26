@@ -3,7 +3,7 @@
 
   "name": "WP Band Aid",
   "description": "This extension is for internal use at SitePoint. It makes using the WP back end a bit easier.",
-  "version": "0.13.1",
+  "version": "0.13.2",
 
   "background": {
     "scripts": [
@@ -33,7 +33,7 @@
     },
     {
       "matches": [ "https://www.sitepoint.com/wp-admin/*" ],
-      "js": [ "scripts/wordpress/modules/backend.js" ],
+      "js": [ "scripts/wordpress/dashboard.js" ],
       "run_at": "document_idle"
     },
     {
