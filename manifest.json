@@ -1,17 +1,18 @@
 {
-  "name": "WP Band Aid",
-  "version": "0.13.0",
   "manifest_version": 2,
+
+  "name": "WP Band Aid",
   "description": "This extension is for internal use at SitePoint. It makes using the WP back end a bit easier.",
+  "version": "0.13.2",
+
   "background": {
     "scripts": [
-      "fancy-settings/source/lib/store.js",
       "lib/jquery-2.1.1.min.js",
-      "scripts/capitalize.js",
-      "scripts/utilities.js",
+      "scripts/utils/utilities.js",
       "scripts/background.js"
     ]
   },
+
   "page_action": {
     "default_icon": {
       "19": "icons/19.png",
@@ -19,35 +20,50 @@
     },
     "default_title": "WP Band Aid"
   },
+
   "permissions": [
     "contextMenus", "activeTab", "tabs"
   ],
+
   "content_scripts": [
     {
-      "matches": [
-        "https://www.sitepoint.com/*",
-        "http://www.sitepoint.com/*"
-      ],
+      "matches": [ "*://*.sitepoint.com/*" ],
+      "js": [ "lib/jquery-2.1.1.min.js", "scripts/main.js" ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [ "https://www.sitepoint.com/wp-admin/*" ],
+      "js": [ "scripts/wordpress/dashboard.js" ],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": [ "https://www.sitepoint.com/wp-admin/post*" ],
       "js": [
-        "lib/jquery-2.1.1.min.js",
         "lib/jquery.datetimepicker.js",
         "lib/showdown.min.js",
-        "scripts/capitalize.js",
-        "scripts/utilities.js",
-        "scripts/modal.js",
-        "scripts/main.js"
+        "scripts/utils/capitalize.js",
+        "scripts/utils/modal.js",
+        "scripts/utils/utilities.js",
+        "scripts/wordpress/modules/editorToolbar.js",
+        "scripts/wordpress/modules/titleArea.js",
+        "scripts/wordpress/modules/editorPane.js",
+        "scripts/wordpress/modules/publishWidget.js",
+        "scripts/wordpress/modules/tagsWidget.js",
+        "scripts/wordpress/modules/seriesWidget.js",
+        "scripts/wordpress/modules/syntaxHighlightingWidget.js",
+        "scripts/wordpress/modules/postPage.js",
+        "scripts/wordpress/newPostPage.js"
       ],
-      "css": [
-        "css/styles.css",
-        "css/jquery.datetimepicker.css"
-      ],
+      "css": [ "css/styles.css", "css/jquery.datetimepicker.css" ],
       "run_at": "document_idle"
     }
   ],
+
   "icons": {
     "16": "icons/16.png",
     "48": "icons/48.png",
     "128": "icons/128.png"
   },
+
   "options_page": "fancy-settings/source/index.html"
 }
