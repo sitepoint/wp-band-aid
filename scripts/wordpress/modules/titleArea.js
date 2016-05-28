@@ -3,9 +3,9 @@
 var TitleArea = (function() {
   function addSubHeadingsButton(titleWrap, editorfield) {
     var subBtn = document.createElement('button');
-    subBtn.innerText = "Capitalize subheadings";
+    subBtn.innerText = "Capitalize Subheadings";
     subBtn.className = "wp-core-ui button bandaid-button-title";
-
+    subBtn.id ="bandaid-capitalize-subheadings";
     var rx = /<(h[2-6]).+>(.+)<\/\1>/ig;
 
     $(subBtn).click(function (e) {
@@ -59,6 +59,7 @@ var TitleArea = (function() {
 
           actionButton = document.createElement("button");
           actionButton.className = "wp-core-ui button button-primary";
+          actionButton.id = "bandaid-fix-selected";
           actionButton.innerText = "Fix selected";
           $(actionButton).click(function (e) {
             var checkboxes = $(".bandaid-cappable-heading input:checked");
@@ -117,6 +118,7 @@ var TitleArea = (function() {
     var subBtn = document.createElement('a');
     subBtn.innerText = "Rebuild Link";
     subBtn.className = "button button-small";
+    subBtn.id = "bandaid-rebuild-link";
 
     $(subBtn).click(function(e) {
       e.preventDefault();
@@ -134,7 +136,7 @@ var TitleArea = (function() {
     a.className = 'button button-small bandaid-copy-link';
     a.innerText = "Copy Link";
     $(a).click(function(e){
-      copyTextToClipboard("http://www.sitepoint.com/"+$("#editable-post-name-full").text());
+      copyTextToClipboard("https://www.sitepoint.com/"+$("#editable-post-name-full").text());
     });
     $('#edit-slug-box').parent().append(a);
   }
@@ -164,8 +166,10 @@ var TitleArea = (function() {
       });
 
       var titleCapBtn = document.createElement('button');
-      titleCapBtn.innerText = "Capitalize and check";
-      titleCapBtn.className = "wp-core-ui button";
+      titleCapBtn.innerText = "Capitalize and Check";
+      titleCapBtn.className = "wp-core-ui button bandaid-capitalize-and-check";
+      titleCapBtn.id ="bandaid-capitalize-and-check";
+
       $(titleCapBtn).click(function (e) {
         $(titleInput).val(capitalize($(titleInput).val()));
 

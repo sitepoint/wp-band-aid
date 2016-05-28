@@ -31,7 +31,8 @@ var EditorToolbar = (function() {
       type: "button",
       value: "MD",
       class: "ed_button button button-small",
-      title: "Convert MD to HTMLs",
+      id: "bandaid-md",
+      title: "Convert MD to HTML",
       click: function(){
         var md = $mainTextArea.val();
         var html = convertToMarkdown(converter, md);
