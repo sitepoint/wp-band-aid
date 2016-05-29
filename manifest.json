@@ -66,5 +66,8 @@
     "128": "icons/128.png"
   },
 
-  "options_page": "fancy-settings/source/index.html"
+  "options_page": "fancy-settings/source/index.html",
+  "web_accessible_resources": [
+    "fragments/*"
+  ]
 }
