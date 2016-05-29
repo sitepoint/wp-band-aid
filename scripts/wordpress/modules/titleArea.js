@@ -141,6 +141,168 @@ var TitleArea = (function() {
     $('#edit-slug-box').parent().append(a);
   }
 
+  function getHeadlineAnalysis(headline){
+    return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
+  }
+
+  function buildResults(data){
+    /*
+      Score
+      Character count
+      Word count
+      Sentiment
+      Word balance
+      Advice
+    */
+
+    function getSentiment(sentiment){
+      return (sentiment === "positive")? "positive" : "negative";
+    }
+
+    function getValueIfExists(obj, key){
+      try {
+        return obj[key];
+      } catch(e) {
+        return undefined;
+      }
+    }
+
+    function getTemplate(){
+      return `
+        <h3>Headline Analysis Score: {{score}} </h3>
+
+        <div class='{{charCountSentiment}}'>
+          {{#if charCountGood}}
+            &#10004; The headline's character count seems fine.
+            You're at {{charCountLength}}, scoring {{charCountScore}} / 100.
+          {{else}}
+            &bigotimes; Character length could be better. Aim for 55 or so characters.
+            You're now at {{charCountLength}}, scoring {{charCountScore}} / 100.
+          {{/if}}
+        </div>
+        {{#if hasCharCountSuggestions}}
+          <div class='{{charCountSentiment}}'>
+            {{charCountMessage}} {{charCountSuggestion}}
+          </div>
+        {{/if}}
+
+        <div class='{{wordCountSentiment}}'>
+          {{#if wordCountGood}}
+            &#10004; The headline's word count count seems fine.
+            You're at {{wordCountLength}}, scoring {{wordCountScore}} / 100.
+          {{else}}
+            &bigotimes; Word count could be better. Aim for 6 words for best results.
+            You're now at {{wordCountLength}}, scoring {{wordCountScore}} / 100.<br>
+          {{/if}}
+        </div>
+        {{#if hasWordCountSuggestions}}
+          <div class='{{wordCountSentiment}}'>
+            {{wordCountMessage}} {{wordCountSuggestion}}
+          </div>
+        {{/if}}
+
+        <div class='{{sentimentSummary}}'>
+          {{#if sentimentGood}}
+             &#10004; The sentiment looks good!
+          {{else}}
+            &bigotimes; Your sentiment is neutral.
+            Good clickbait is either strongly positive or negative.
+          {{/if}}
+        </div>
+
+        <div class='{{wordBalanceSentiment}}'>
+          {{#if wordBalanceGood}}
+             &#10004; The word balance seems fine.
+          {{else}}
+            &bigotimes; Your word balance is off.
+          {{/if}}
+        </div>
+        {{#unless wordBalanceGood}}
+          {{#if commonWordsInHeadline}}
+            <div class='{{wordBalanceSentiment}}'>
+              {{wordBalanceMessage}} {{wordBalanceSuggestion}}
+            </div>
+          {{/if}}
+          <ul>
+            <li>
+              <span class='bold score'>{{wordBalancePercentage}} %</span> of your words are common.
+              Common words make up the basic structure of readable headlines.
+              Great headlines are usually made up of 20-30% common words.
+              <span class='bold'>Common words are words like: a, about, after, and, her, how, this, why, these, what, your, things...</span>
+            </li>
+            <li>
+              <span class='bold score'>{{wordBalanceUncommonPercentage}} %</span> of your words are uncommon.
+              Uncommon words occur less frequently than common words, but give your headline substance.
+              Great headlines are usually made up of 10-20% uncommon words.
+              <span class='bold'>Examples: actually, awesome, baby, beautiful, heart, here, more, right, see, social, world, year...</span>
+            </li>
+            <li>
+              <span class='bold score'>{{wordBalanceEmotionalPercentage}} %</span> of your words are emotional.
+              Emotional words frequently stir an emotional response in the reader. They have been proven to drive clicks and shares.
+              Great headlines are usually made up of 10-15% emotional words.
+              <span class='bold'>Examples: absolutely, attractive, blissful, bravery, confessions, danger, dollar,
+              spotlight, valuable, worry, wonderful, zinger...</span>
+            </li>
+            <li>
+              <span class='bold score'>{{wordBalancePowerPercentage}} %</span> of your words are power words.
+              Power words or phrases indicate intense trigger words that frequently command a readers attention and action.
+              Great headlines contain at least 1 power phrase or word.
+              <span class='bold'>Examples of power phrases: for the first time, in the world, make you, no questions asked,
+              pay zero, thing I've ever seen, what this, will make you, you see what, you need to know, you see, what happened to...</span>
+            </li>
+          </ul>
+        {{/unless}}
+
+        {{#if hasTypeSuggestions}}
+          <h4>Other Advice</h4>
+          <ul>
+            <li>{{typeMessage}} {{typeSuggestion}}</li>
+          </ul>
+        {{/if}}
+      `;
+    }
+
+    var compiledTemplate = Handlebars.compile(getTemplate());
+    var html = compiledTemplate({
+      score: data.score.total,
+
+      charCountSentiment: getSentiment(data.char_count.summary),
+      charCountGood: getSentiment(data.char_count.summary) === "positive",
+      charCountLength: data.char_count.length,
+      charCountScore: data.char_count.score,
+      hasCharCountSuggestions: data.suggestions.char_length !== undefined,
+      charCountMessage: getValueIfExists(data.suggestions.char_length, "message"),
+      charCountSuggestion: getValueIfExists(data.suggestions.char_length, "suggestion"),
+
+      wordCountSentiment: getSentiment(data.word_count.summary),
+      wordCountGood: getSentiment(data.word_count.summary) === "positive",
+      wordCountLength: data.word_count.length,
+      wordCountScore: data.word_count.score,
+      hasWordCountSuggestions: data.suggestions.word_count !== undefined,
+      wordCountMessage: getValueIfExists(data.suggestions.word_count, "message"),
+      wordCountSuggestion: getValueIfExists(data.suggestions.word_count, "suggestion"),
+
+      sentimentSummary: getSentiment(data.sentiment.summary),
+      sentimentGood: data.sentiment.summary !== "neutral",
+
+      wordBalanceSentiment: getSentiment(data.word_balance.summary),
+      wordBalanceGood: getSentiment(data.word_balance.summary) === "positive",
+      commonWordsInHeadline: data.suggestions.common_words !== undefined,
+      wordBalanceMessage: getValueIfExists(data.suggestions.common_words, "message"),
+      wordBalanceSuggestion:getValueIfExists(data.suggestions.common_words, "suggestion"),
+      wordBalancePercentage: data.word_balance.common.percentage,
+      wordBalanceUncommonPercentage: data.word_balance.uncommon.percentage,
+      wordBalanceEmotionalPercentage: data.word_balance.emotional.percentage,
+      wordBalancePowerPercentage: data.word_balance.power.percentage,
+
+      hasTypeSuggestions: data.suggestions.type !== undefined,
+      typeMessage: getValueIfExists(data.suggestions.type, "message"),
+      typeSuggestion: getValueIfExists(data.suggestions.type, "suggestion"),
+    });
+
+    return html;
+  }
+
   function init(){
     var titleWrap = $("#titlewrap");
     var titleInput = $("#title");
@@ -170,72 +332,19 @@ var TitleArea = (function() {
       titleCapBtn.className = "wp-core-ui button bandaid-capitalize-and-check";
       titleCapBtn.id ="bandaid-capitalize-and-check";
 
-      $(titleCapBtn).click(function (e) {
+      $(titleCapBtn).on("click", function(e){
+        e.preventDefault();
         $(titleInput).val(capitalize($(titleInput).val()));
 
-        $.get("https://cos-headlines.herokuapp.com/?headline=" + $(titleInput).val(), function (data) {
+        getHeadlineAnalysis($(titleInput).val())
+        .done(function(data){
           $(scorePointer).css("left", data.score.total + "%");
-
-          var html = "<h3>Headline Analysis Score: " + data.score.total + "</h3>";
-
-          if (data.char_count.summary == 'positive') {
-            html += "<span class='positive'>&#10004; The headline's character count seems fine. You're at " + data.char_count.length + ", scoring " + data.char_count.score + " / 100.</span><br>";
-          } else {
-            html += "<span class='negative'>&bigotimes; Character length could be better. Aim for 55 or so characters. You're now at " + data.char_count.length + ", scoring " + data.char_count.score + " / 100.</span><br>";
-            if (data.suggestions.char_length !== undefined) {
-              html += "<span class='negative'>" + data.suggestions.char_length.message + " " + data.suggestions.char_length.suggestion + "</span><br>";
-            }
-          }
-
-          if (data.word_count.summary == 'positive') {
-            html += "<span class='positive'>&#10004; The headline's word count seems fine. You're at " + data.word_count.length + " words, scoring " + data.char_count.score + " / 100.</span><br>";
-          } else {
-            html += "<span class='negative'>&bigotimes; Word count could be better. Aim for 6 words for best results. You're now at " + data.word_count.length + ", scoring " + data.word_count.score + " / 100.</span><br>";
-            if (data.suggestions.word_length !== undefined) {
-              html += "<span class='negative'>" + data.suggestions.word_length.message + " " + data.suggestions.word_length.suggestion + "</span><br>";
-            }
-          }
-
-          if (data.sentiment.summary == 'neutral') {
-            html += "<span class='negative'>&bigotimes; Your sentiment is neutral. Good clickbait is either strongly positive or negative.</span><br>";
-          } else {
-            html += "<span class='positive'>&#10004; The sentiment looks good!</span><br>";
-          }
-
-          if (data.word_balance.summary == 'positive') {
-            html += "<span class='positive'>&#10004; The word balance seems fine:</span><br>";
-          } else {
-            html += "<span class='negative'>&bigotimes; Your word balance is off:</span><br>";
-            if (data.suggestions.common_words !== undefined) {
-              html += "<span class='negative'>" + data.suggestions.common_words.message + " " + data.suggestions.common_words.suggestion + "</span><br>";
-            }
-            html += "<ul><li><span class='bold score'>" + data.word_balance.common.percentage + "%</span> of your words are common. Common words make up the basic structure of readable headlines. Great headlines are usually made up of 20-30% common words. <span class='bold'>Common words are words like: a, about, after, and, her, how, this, why, these, what, your, things...</span></li>";
-            html += "<li><span class='bold score'>" + data.word_balance.uncommon.percentage + "%</span> of your words are uncommon. Uncommon words occur less frequently than common words, but give your headline substance. Great headlines are usually made up of 10-20% uncommon words. <span class='bold'>Examples: actually, awesome, baby, beautiful, heart, here, more, right, see, social, world, year...</span></li>";
-            html += "<li><span class='bold score'>" + data.word_balance.emotional.percentage + "%</span> of your words are emotional. Emotional words frequently stir an emotional response in the reader. They have been proven to drive clicks and shares. Great headlines are usually made up of 10-15% emotional words. <span class='bold'>Examples: absolutely, attractive, blissful, bravery, confessions, danger, dollar, spotlight, valuable, worry, wonderful, zinger...</span></li>";
-            html += "<li><span class='bold score'>" + data.word_balance.power.percentage + "%</span> of your words are power words. Power words or phrases indicate intense trigger words that frequently command a readers attention and action. Great headlines contain at least 1 power phrase or word. <span class='bold'>Examples of power phrases: for the first time, in the world, make you, no questions asked, pay zero, thing I've ever seen, what this, will make you, you see what, you need to know, you see, what happened to...</span></li></ul>";
-          }
-
-          var otherAdviceMessages = [];
-          var otherAdviceMessageKeys = ['type'];
-          $.each(otherAdviceMessageKeys, function (i, key) {
-            if (data.suggestions[key] !== undefined) {
-              otherAdviceMessages.push(data.suggestions[key].message + " " + data.suggestions[key].suggestion);
-            }
-          });
-
-          if (otherAdviceMessages.length) {
-            html += "<h4>Other advice</h4>"
-            html += "<ul>";
-            $.each(otherAdviceMessages, function (i, msg) {
-              html += "<li>" + msg + "</li>";
-            });
-            html += "</ul>";
-          }
-
+          var html = buildResults(data);
           $(scoreInfo).html(html);
+        })
+        .fail(function(){
+          alert("Could not contact API");
         });
-
-        return false;
       });
 
       $(titleWrap).append(scoreFrame);

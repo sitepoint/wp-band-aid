@@ -47,19 +47,20 @@
     margin: 5px;
 }
 
-.headalyze-info>span {
+.headalyze-info>div {
     margin-left: 20px;
+    margin-bottom: 5px;
 }
 
-.headalyze-info span.positive {
+.headalyze-info div.positive {
     color: #7cc576;
 }
 
-.headalyze-info span.negative {
+.headalyze-info div.negative {
     color: #c55854;
 }
 
-.headalyze-info span.bold {
+.headalyze-info div.bold {
     font-weight: bold;
 }
 
