@@ -3,9 +3,9 @@
 var TitleArea = (function() {
   function addSubHeadingsButton(titleWrap, editorfield) {
     var subBtn = document.createElement('button');
-    subBtn.innerText = "Capitalize subheadings";
+    subBtn.innerText = "Capitalize Subheadings";
     subBtn.className = "wp-core-ui button bandaid-button-title";
-
+    subBtn.id ="bandaid-capitalize-subheadings";
     var rx = /<(h[2-6]).+>(.+)<\/\1>/ig;
 
     $(subBtn).click(function (e) {
@@ -47,7 +47,7 @@ var TitleArea = (function() {
           checkbox.name = "cappable[]";
           checkbox.value = obj.original;
           $(checkbox).prop('checked', true);
-          $(checkbox).change(function (e) {
+          $(checkbox).change(function() {
             if (!$(this).is(":checked")) {
               $(".check-all").prop("checked", false);
             }
@@ -59,8 +59,9 @@ var TitleArea = (function() {
 
           actionButton = document.createElement("button");
           actionButton.className = "wp-core-ui button button-primary";
+          actionButton.id = "bandaid-fix-selected";
           actionButton.innerText = "Fix selected";
-          $(actionButton).click(function (e) {
+          $(actionButton).click(function() {
             var checkboxes = $(".bandaid-cappable-heading input:checked");
             $.each(checkboxes, function (i, obj) {
               var value = $(obj).val();
@@ -81,7 +82,7 @@ var TitleArea = (function() {
         checkbox.className = "check-all";
         $(checkbox).prop('checked', true);
 
-        function checkAll(e) {
+        function checkAll() {
           var $checkboxes = $(".bandaid-cappable-heading input");
           if ($(this).is(":checked")) {
             $checkboxes.prop('checked', true);
@@ -113,10 +114,11 @@ var TitleArea = (function() {
     $(titleWrap).append(subBtn);
   }
 
-  function addRebuildSlugButton(titleWrap) {
+  function addRebuildSlugButton() {
     var subBtn = document.createElement('a');
     subBtn.innerText = "Rebuild Link";
     subBtn.className = "button button-small";
+    subBtn.id = "bandaid-rebuild-link";
 
     $(subBtn).click(function(e) {
       e.preventDefault();
@@ -133,10 +135,75 @@ var TitleArea = (function() {
     var a = document.createElement('a');
     a.className = 'button button-small bandaid-copy-link';
     a.innerText = "Copy Link";
-    $(a).click(function(e){
-      copyTextToClipboard("http://www.sitepoint.com/"+$("#editable-post-name-full").text());
+    $(a).click(function(){
+      copyTextToClipboard("https://www.sitepoint.com/"+$("#editable-post-name-full").text());
     });
     $('#edit-slug-box').parent().append(a);
+  }
+
+  function getHeadlineAnalysis(headline){
+    return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
+  }
+
+  function buildResults(data, compiledTemplate){
+    function getSentiment(sentiment){
+      return (sentiment === "positive")? "positive" : "negative";
+    }
+
+    function isPositive(val){
+      return getSentiment(val) === "positive";
+    }
+
+    function getVal(obj, key){
+      try {
+        return obj[key];
+      } catch(e) {
+        return undefined;
+      }
+    }
+
+    function exists(val){
+      return val !== undefined;
+    }
+
+    var html = compiledTemplate({
+      score: data.score.total,
+
+      charCountSentiment: getSentiment(data.char_count.summary),
+      charCountGood: isPositive(data.char_count.summary),
+      charCountLength: data.char_count.length,
+      charCountScore: data.char_count.score,
+      hasCharCountSuggestions: exists(data.suggestions.char_length),
+      charCountMessage: getVal(data.suggestions.char_length, "message"),
+      charCountSuggestion: getVal(data.suggestions.char_length, "suggestion"),
+
+      wordCountSentiment: getSentiment(data.word_count.summary),
+      wordCountGood: isPositive(data.word_count.summary),
+      wordCountLength: data.word_count.length,
+      wordCountScore: data.word_count.score,
+      hasWordCountSuggestions: exists(data.suggestions.word_count),
+      wordCountMessage: getVal(data.suggestions.word_count, "message"),
+      wordCountSuggestion: getVal(data.suggestions.word_count, "suggestion"),
+
+      sentimentSummary: getSentiment(data.sentiment.summary),
+      sentimentGood: data.sentiment.summary !== "neutral",
+
+      wordBalanceSentiment: getSentiment(data.word_balance.summary),
+      wordBalanceGood: isPositive(data.word_balance.summary),
+      commonWordsInHeadline: exists(data.suggestions.common_words),
+      wordBalanceMessage: getVal(data.suggestions.common_words, "message"),
+      wordBalanceSuggestion:getVal(data.suggestions.common_words, "suggestion"),
+      wordBalancePercentage: data.word_balance.common.percentage,
+      wordBalanceUncommonPercentage: data.word_balance.uncommon.percentage,
+      wordBalanceEmotionalPercentage: data.word_balance.emotional.percentage,
+      wordBalancePowerPercentage: data.word_balance.power.percentage,
+
+      hasTypeSuggestions: exists(data.suggestions.type),
+      typeMessage: getVal(data.suggestions.type, "message"),
+      typeSuggestion: getVal(data.suggestions.type, "suggestion"),
+    });
+
+    return html;
   }
 
   function init(){
@@ -144,103 +211,55 @@ var TitleArea = (function() {
     var titleInput = $("#title");
     var editorField = $(".wp-editor-area");
 
+    // Get and compile headline analyzer template
+    var headLineTemplateURL = chrome.runtime.getURL("/fragments/headline-analyzer.hbs");
+    var headlineAnalyzerTemplate;
+    $.get(headLineTemplateURL, function(data) {
+      headlineAnalyzerTemplate = Handlebars.compile(data);
+    });
+
     // Add the headline analysis score bar and capitalizer
-    if ($(titleWrap).length) {
-      // Title field found
+    var scoreFrame = document.createElement('div');
+    scoreFrame.className = 'headalyze';
+    var scoreBar = document.createElement('div');
+    scoreBar.className = 'headalyze-bar';
+    var scoreInfo = document.createElement('div');
+    scoreInfo.className = 'headalyze-info';
+    var scorePointer = document.createElement('div');
+    scorePointer.className = 'pointer';
+    $(scoreBar).append(scorePointer);
+    $(scoreFrame).append(scoreBar);
+    $(scoreFrame).append(scoreInfo);
+    $(scoreFrame).click(function() {
+      $(scoreInfo).toggle();
+    });
 
-      var scoreFrame = document.createElement('div');
-      scoreFrame.className = 'headalyze';
-      var scoreBar = document.createElement('div');
-      scoreBar.className = 'headalyze-bar';
-      var scoreInfo = document.createElement('div');
-      scoreInfo.className = 'headalyze-info';
-      var scorePointer = document.createElement('div');
-      scorePointer.className = 'pointer';
-      $(scoreBar).append(scorePointer);
-      $(scoreFrame).append(scoreBar);
-      $(scoreFrame).append(scoreInfo);
-      $(scoreFrame).click(function (e) {
-        $(scoreInfo).toggle()
+    var titleCapBtn = document.createElement('button');
+    titleCapBtn.innerText = "Capitalize and Check";
+    titleCapBtn.className = "wp-core-ui button bandaid-capitalize-and-check";
+    titleCapBtn.id ="bandaid-capitalize-and-check";
+
+    $(titleCapBtn).on("click", function(e){
+      e.preventDefault();
+      $(titleInput).val(capitalize($(titleInput).val()));
+
+      getHeadlineAnalysis($(titleInput).val())
+      .done(function(data){
+        $(scorePointer).css("left", data.score.total + "%");
+        var html = buildResults(data, headlineAnalyzerTemplate);
+        $(scoreInfo).html(html);
+      })
+      .fail(function(){
+        window.alert("Could not contact API");
       });
+    });
 
-      var titleCapBtn = document.createElement('button');
-      titleCapBtn.innerText = "Capitalize and check";
-      titleCapBtn.className = "wp-core-ui button";
-      $(titleCapBtn).click(function (e) {
-        $(titleInput).val(capitalize($(titleInput).val()));
+    $(titleWrap).append(scoreFrame);
+    $(titleWrap).append(titleCapBtn);
 
-        $.get("https://cos-headlines.herokuapp.com/?headline=" + $(titleInput).val(), function (data) {
-          $(scorePointer).css("left", data.score.total + "%");
-
-          var html = "<h3>Headline Analysis Score: " + data.score.total + "</h3>";
-
-          if (data.char_count.summary == 'positive') {
-            html += "<span class='positive'>&#10004; The headline's character count seems fine. You're at " + data.char_count.length + ", scoring " + data.char_count.score + " / 100.</span><br>";
-          } else {
-            html += "<span class='negative'>&bigotimes; Character length could be better. Aim for 55 or so characters. You're now at " + data.char_count.length + ", scoring " + data.char_count.score + " / 100.</span><br>";
-            if (data.suggestions.char_length !== undefined) {
-              html += "<span class='negative'>" + data.suggestions.char_length.message + " " + data.suggestions.char_length.suggestion + "</span><br>";
-            }
-          }
-
-          if (data.word_count.summary == 'positive') {
-            html += "<span class='positive'>&#10004; The headline's word count seems fine. You're at " + data.word_count.length + " words, scoring " + data.char_count.score + " / 100.</span><br>";
-          } else {
-            html += "<span class='negative'>&bigotimes; Word count could be better. Aim for 6 words for best results. You're now at " + data.word_count.length + ", scoring " + data.word_count.score + " / 100.</span><br>";
-            if (data.suggestions.word_length !== undefined) {
-              html += "<span class='negative'>" + data.suggestions.word_length.message + " " + data.suggestions.word_length.suggestion + "</span><br>";
-            }
-          }
-
-          if (data.sentiment.summary == 'neutral') {
-            html += "<span class='negative'>&bigotimes; Your sentiment is neutral. Good clickbait is either strongly positive or negative.</span><br>";
-          } else {
-            html += "<span class='positive'>&#10004; The sentiment looks good!</span><br>";
-          }
-
-          if (data.word_balance.summary == 'positive') {
-            html += "<span class='positive'>&#10004; The word balance seems fine:</span><br>";
-          } else {
-            html += "<span class='negative'>&bigotimes; Your word balance is off:</span><br>";
-            if (data.suggestions.common_words !== undefined) {
-              html += "<span class='negative'>" + data.suggestions.common_words.message + " " + data.suggestions.common_words.suggestion + "</span><br>";
-            }
-            html += "<ul><li><span class='bold score'>" + data.word_balance.common.percentage + "%</span> of your words are common. Common words make up the basic structure of readable headlines. Great headlines are usually made up of 20-30% common words. <span class='bold'>Common words are words like: a, about, after, and, her, how, this, why, these, what, your, things...</span></li>";
-            html += "<li><span class='bold score'>" + data.word_balance.uncommon.percentage + "%</span> of your words are uncommon. Uncommon words occur less frequently than common words, but give your headline substance. Great headlines are usually made up of 10-20% uncommon words. <span class='bold'>Examples: actually, awesome, baby, beautiful, heart, here, more, right, see, social, world, year...</span></li>";
-            html += "<li><span class='bold score'>" + data.word_balance.emotional.percentage + "%</span> of your words are emotional. Emotional words frequently stir an emotional response in the reader. They have been proven to drive clicks and shares. Great headlines are usually made up of 10-15% emotional words. <span class='bold'>Examples: absolutely, attractive, blissful, bravery, confessions, danger, dollar, spotlight, valuable, worry, wonderful, zinger...</span></li>";
-            html += "<li><span class='bold score'>" + data.word_balance.power.percentage + "%</span> of your words are power words. Power words or phrases indicate intense trigger words that frequently command a readers attention and action. Great headlines contain at least 1 power phrase or word. <span class='bold'>Examples of power phrases: for the first time, in the world, make you, no questions asked, pay zero, thing I've ever seen, what this, will make you, you see what, you need to know, you see, what happened to...</span></li></ul>";
-          }
-
-          var otherAdviceMessages = [];
-          var otherAdviceMessageKeys = ['type'];
-          $.each(otherAdviceMessageKeys, function (i, key) {
-            if (data.suggestions[key] !== undefined) {
-              otherAdviceMessages.push(data.suggestions[key].message + " " + data.suggestions[key].suggestion);
-            }
-          });
-
-          if (otherAdviceMessages.length) {
-            html += "<h4>Other advice</h4>"
-            html += "<ul>";
-            $.each(otherAdviceMessages, function (i, msg) {
-              html += "<li>" + msg + "</li>";
-            });
-            html += "</ul>";
-          }
-
-          $(scoreInfo).html(html);
-        });
-
-        return false;
-      });
-
-      $(titleWrap).append(scoreFrame);
-      $(titleWrap).append(titleCapBtn);
-
-      addSubHeadingsButton(titleWrap, editorField);
-      addRebuildSlugButton(titleWrap);
-      addCopyPermalinkButton();
-    }
+    addSubHeadingsButton(titleWrap, editorField);
+    addRebuildSlugButton(titleWrap);
+    addCopyPermalinkButton();
   }
 
   return {
