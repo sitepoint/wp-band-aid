@@ -1,46 +1,34 @@
 "use strict";
 
 var TitleArea = (function() {
+  const sitePointBaseURL = "https://www.sitepoint.com/";
   var $titleWrap = $("#titlewrap");
   var $titleInput = $("#title");
   var $editorField = $(".wp-editor-area");
+  var $permalinkRow = $('#edit-slug-box').parent();
   var $scoreFrame; // $(".headalyze")
   var $scoreInfo; // $(".headalyze-info")
   var $titleCapBtn; // $("#bandaid-capitalize-and-check")
   var $scorePointer; // $(".pointer")
   var $subBtn; // $("#bandaid-capitalize-subheadings")
+  var $copyLinkButton; // $("#bandaid-copy-link")
+  var $rebuildLinkButton; // $("#bandaid-rebuild-link")
   var headlineAnalyzerTemplate;
   var headlineModalTemplate;
 
-  Handlebars.registerHelper('capitalize', function(options) {
-    return capitalize(options);
+  Handlebars.registerHelper('capitalize', function(text) {
+    return capitalize(text);
   });
 
-  function addRebuildSlugButton() {
-    var subBtn = document.createElement('a');
-    subBtn.innerText = "Rebuild Link";
-    subBtn.className = "button button-small";
-    subBtn.id = "bandaid-rebuild-link";
-
-    $(subBtn).click(function(e) {
-      e.preventDefault();
-      $("button.edit-slug").click();
-      var title = $("input[name='post_title']").val();
-      $("#new-post-slug").val(title);
-      $("button.save").click();
-    });
-
-    $('#edit-slug-box').parent().append(subBtn);
+  // Utility
+  function getTemplate(file){
+    var templateURL = chrome.runtime.getURL(`/fragments/${file}`);
+    return $.get(templateURL);
   }
 
-  function addCopyPermalinkButton() {
-    var a = document.createElement('a');
-    a.className = 'button button-small bandaid-copy-link';
-    a.innerText = "Copy Link";
-    $(a).click(function(){
-      copyTextToClipboard("https://www.sitepoint.com/"+$("#editable-post-name-full").text());
-    });
-    $('#edit-slug-box').parent().append(a);
+  // Capitalize and Check
+  function getHeadlineAnalysis(headline){
+    return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
   }
 
   function buildResults(data){
@@ -104,15 +92,7 @@ var TitleArea = (function() {
     return html;
   }
 
-  function getHeadlineAnalysis(headline){
-    return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
-  }
-
-  function getTemplate(file){
-    var templateURL = chrome.runtime.getURL(`/fragments/${file}`);
-    return $.get(templateURL);
-  }
-
+  // Capitalize Subheadings
   function getAllHeadings(){
     var rx = /<(h[2-6]).+>(.+)<\/\1>/ig;
     var content = $editorField.val();
@@ -139,7 +119,7 @@ var TitleArea = (function() {
     ).map( heading => heading[2] );
   }
 
-  function buildModal(fixable){
+  function buildHeadlineModal(fixable){
     var html = headlineModalTemplate({
       somethingToOptimize: fixable.length,
       multiple: fixable.length > 1,
@@ -149,24 +129,24 @@ var TitleArea = (function() {
     return html;
   }
 
-  function capitalizeHeadings(){
-    var content = $editorField.val();
-
-    $(":checkbox.fixable:checked").each(function(){
-      var fixable = $(this).next(".actual").text();
-      var regExpString = "(<(h[2-6]).+>)" + fixable + "(</\\2>)";
-      var re = new RegExp(regExpString, "g");
-
-      content = content.replace(re, function(match, p1, p2, p3) {
-        return p1 + capitalize(fixable) + p3;
-      });
-    });
-
-    $editorField.val(content);
-    hideModal();
-  }
-
   function buildActionButton(){
+    function capitalizeHeadings(){
+      var content = $editorField.val();
+
+      $(":checkbox.fixable:checked").each(function(){
+        var fixable = $(this).next(".actual").text();
+        var regExpString = "(<(h[2-6]).+>)" + fixable + "(</\\2>)";
+        var re = new RegExp(regExpString, "g");
+
+        content = content.replace(re, function(match, p1, p2, p3) {
+          return p1 + capitalize(fixable) + p3;
+        });
+      });
+
+      $editorField.val(content);
+      hideModal();
+    }
+
     var button = $('<button />', {
       class: "wp-core-ui button button-primary",
       id: "bandaid-fix-selected",
@@ -177,12 +157,13 @@ var TitleArea = (function() {
     return button;
   }
 
+  // Event handlers
   function attachEventHandlers(){
     $scoreFrame.on("click", () => $scoreInfo.toggle());
 
     $titleCapBtn.on("click", function(e){
       e.preventDefault();
-      var currTitle = $titleInput.val()
+      var currTitle = $titleInput.val();
       $titleInput.val(capitalize(currTitle));
 
       getHeadlineAnalysis(currTitle)
@@ -200,18 +181,31 @@ var TitleArea = (function() {
       e.preventDefault();
       var headings = getAllHeadings();
       var fixable = getFixableHeadings(headings);
-      var modalContent = buildModal(fixable);
-      var $actionButton = buildActionButton();
+      var modalContent = buildHeadlineModal(fixable);
+      var $actionButton = (fixable.length > 0)? buildActionButton() : undefined;
       showModal('Fixable subheadings', modalContent, $actionButton);
     });
 
-    $(document).on("click", "#fixable-headings-list :checkbox", function(e){
+    $(document).on("click", "#fixable-headings-list :checkbox", function(){
       var $checkBoxes = $("#fixable-headings-list :checkbox");
       if(this.id === "check-all-headings"){
-        $checkBoxes.prop('checked', this.checked)
+        $checkBoxes.prop('checked', this.checked);
       } else {
         $("#check-all-headings").prop('checked', false);
       }
+    });
+
+    $copyLinkButton.on("click", function(){
+      // Cannot be cached as hidden when page renders
+      var postName = $("#editable-post-name-full").text();
+      copyTextToClipboard(sitePointBaseURL + postName);
+    });
+
+    $rebuildLinkButton.on("click", function(){
+      $("button.edit-slug").click();
+      var title = $titleInput.val();
+      $("#new-post-slug").val(title);
+      $("button.save").click();
     });
   }
 
@@ -232,19 +226,23 @@ var TitleArea = (function() {
     getTemplate("headalyze.html")
     .then((html) => $titleWrap.append(html))
     .then(function(){
-      // Cache elements in previously declared global
       $scoreFrame = $(".headalyze");
       $scoreInfo = $(".headalyze-info");
       $titleCapBtn = $("#bandaid-capitalize-and-check");
       $scorePointer = $(".pointer");
       $subBtn = $("#bandaid-capitalize-subheadings");
-
-      // Set up all of the event handlers
-      attachEventHandlers();
-    });
-
-    addRebuildSlugButton($titleWrap);
-    addCopyPermalinkButton();
+    })
+    // Get Link Buttons template and append it to permalink row
+    // Link Buttons template adds:
+    // Rebuild Link button
+    // Copy Link button
+    .then(() => getTemplate("link-buttons.html"))
+    .then((html) => $permalinkRow.append(html))
+    .then(function(){
+      $copyLinkButton = $("#bandaid-copy-link");
+      $rebuildLinkButton = $("#bandaid-rebuild-link");
+    })
+    .then(() => attachEventHandlers());
   }
 
   return {
