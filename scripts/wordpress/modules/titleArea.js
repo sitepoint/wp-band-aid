@@ -10,6 +10,7 @@ var TitleArea = (function() {
   var $scorePointer; // $(".pointer")
   var $subBtn; // $("#bandaid-capitalize-subheadings")
   var headlineAnalyzerTemplate;
+  var headlineModalTemplate;
 
   Handlebars.registerHelper('capitalize', function(options) {
     return capitalize(options);
@@ -42,7 +43,7 @@ var TitleArea = (function() {
     $('#edit-slug-box').parent().append(a);
   }
 
-  function buildResults(data, compiledTemplate){
+  function buildResults(data){
     function getSentiment(sentiment){
       return (sentiment === "positive")? "positive" : "negative";
     }
@@ -63,7 +64,7 @@ var TitleArea = (function() {
       return val !== undefined;
     }
 
-    var html = compiledTemplate({
+    var html = headlineAnalyzerTemplate({
       score: data.score.total,
 
       charCountSentiment: getSentiment(data.char_count.summary),
@@ -139,32 +140,7 @@ var TitleArea = (function() {
   }
 
   function buildModal(fixable){
-    var modalTemplate = `
-      {{#if somethingToOptimize}}
-        <ul id="fixable-headings-list">
-          {{#if multiple}}
-            <li>
-             <label>
-               <input type="checkbox" id="check-all-headings" checked>Check all
-              </label>
-            </li>
-          {{/if}}
-          {{#each fixable}}
-            <li class="bandaid-cappable-heading">
-              <label>
-                <input type="checkbox" class="fixable" checked>
-                Fix: <span class="actual">{{this}}</span> =&gt;
-                     <span class="suggestion">{{capitalize this}}</span>
-              </label>
-            </li>
-          {{/each}}
-        </ul>
-      {{else}}
-        <p>Nothing to optimize, all subheadings look good!</p>
-      {{/if}}
-    `
-    var compiledModalTemplate = Handlebars.compile(modalTemplate)
-    var html = compiledModalTemplate({
+    var html = headlineModalTemplate({
       somethingToOptimize: fixable.length,
       multiple: fixable.length > 1,
       fixable: fixable
@@ -212,7 +188,7 @@ var TitleArea = (function() {
       getHeadlineAnalysis(currTitle)
       .done(function(data){
         $scorePointer.css("left", data.score.total + "%");
-        var html = buildResults(data, headlineAnalyzerTemplate);
+        var html = buildResults(data);
         $scoreInfo.html(html);
       })
       .fail(function(){
@@ -244,6 +220,9 @@ var TitleArea = (function() {
     // Then store it in a previously eclared global
     getTemplate("headline-analyzer.hbs")
     .then((data) => headlineAnalyzerTemplate = Handlebars.compile(data));
+
+    getTemplate("headline-modal-template.hbs")
+    .then((data) => headlineModalTemplate = Handlebars.compile(data));
 
     // Get Headalyze template and append it to title input field
     // Headalyze template adds:
