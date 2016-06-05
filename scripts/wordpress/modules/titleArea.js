@@ -20,12 +20,6 @@ var TitleArea = (function() {
     return capitalize(text);
   });
 
-  // Utility
-  function getTemplate(file){
-    var templateURL = chrome.runtime.getURL(`/fragments/${file}`);
-    return $.get(templateURL);
-  }
-
   // Capitalize and Check
   function getHeadlineAnalysis(headline){
     return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
@@ -129,32 +123,21 @@ var TitleArea = (function() {
     return html;
   }
 
-  function buildActionButton(){
-    function capitalizeHeadings(){
-      var content = $editorField.val();
+  function capitalizeHeadings(){
+    var content = $editorField.val();
 
-      $(":checkbox.fixable:checked").each(function(){
-        var fixable = $(this).next(".actual").text();
-        var regExpString = "(<(h[2-6]).+>)" + fixable + "(</\\2>)";
-        var re = new RegExp(regExpString, "g");
+    $(":checkbox.fixable:checked").each(function(){
+      var fixable = $(this).next(".actual").text();
+      var regExpString = "(<(h[2-6]).+>)" + fixable + "(</\\2>)";
+      var re = new RegExp(regExpString, "g");
 
-        content = content.replace(re, function(match, p1, p2, p3) {
-          return p1 + capitalize(fixable) + p3;
-        });
+      content = content.replace(re, function(match, p1, p2, p3) {
+        return p1 + capitalize(fixable) + p3;
       });
-
-      $editorField.val(content);
-      hideModal();
-    }
-
-    var button = $('<button />', {
-      class: "wp-core-ui button button-primary",
-      id: "bandaid-fix-selected",
-      text: "Fix Selected",
-      click: capitalizeHeadings
     });
 
-    return button;
+    $editorField.val(content);
+    hideModal();
   }
 
   // Event handlers
@@ -182,8 +165,13 @@ var TitleArea = (function() {
       var headings = getAllHeadings();
       var fixable = getFixableHeadings(headings);
       var modalContent = buildHeadlineModal(fixable);
-      var $actionButton = (fixable.length > 0)? buildActionButton() : undefined;
-      showModal('Fixable subheadings', modalContent, $actionButton);
+      //var $actionButton = (fixable.length > 0)? buildActionButton() : undefined;
+      showModal({
+        heading: "Fixable subheadings",
+        bodyHTML: modalContent,
+        buttonText: "Fix Selected",
+        callback: capitalizeHeadings
+      });
     });
 
     $(document).on("click", "#fixable-headings-list :checkbox", function(){
@@ -215,7 +203,7 @@ var TitleArea = (function() {
     getTemplate("headline-analyzer.hbs")
     .then((data) => headlineAnalyzerTemplate = Handlebars.compile(data));
 
-    getTemplate("headline-modal-template.hbs")
+    getTemplate("fixable-headings.hbs")
     .then((data) => headlineModalTemplate = Handlebars.compile(data));
 
     // Get Headalyze template and append it to title input field

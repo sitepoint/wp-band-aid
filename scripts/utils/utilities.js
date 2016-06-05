@@ -8,12 +8,12 @@
  * @returns {Array}
  */
 function getAllMatches(myRe, str) {
-    var returnData = [];
-    var myArray;
-    while ((myArray = myRe.exec(str)) !== null) {
-        returnData.push(myArray);
-    }
-    return returnData;
+  var returnData = [];
+  var myArray;
+  while ((myArray = myRe.exec(str)) !== null) {
+    returnData.push(myArray);
+  }
+  return returnData;
 }
 
 /**
@@ -23,8 +23,8 @@ function getAllMatches(myRe, str) {
  * @returns {boolean}
  */
 function linkOk(url) {
-    var r = new RegExp('^(?:[a-z]+:)?//', 'i');
-    return (r.test(url) || url.startsWith("mailto:") || url.startsWith("#"));
+  var r = new RegExp('^(?:[a-z]+:)?//', 'i');
+  return (r.test(url) || url.startsWith("mailto:") || url.startsWith("#"));
 }
 
 /**
@@ -33,13 +33,13 @@ function linkOk(url) {
  * @param text
  */
 function copyTextToClipboard(text) {
-    var copyFrom = document.createElement("textarea");
-    copyFrom.textContent = text;
-    var body = document.getElementsByTagName('body')[0];
-    body.appendChild(copyFrom);
-    copyFrom.select();
-    document.execCommand('copy');
-    body.removeChild(copyFrom);
+  var copyFrom = document.createElement("textarea");
+  copyFrom.textContent = text;
+  var body = document.getElementsByTagName('body')[0];
+  body.appendChild(copyFrom);
+  copyFrom.select();
+  document.execCommand('copy');
+  body.removeChild(copyFrom);
 }
 
 /**
@@ -48,7 +48,19 @@ function copyTextToClipboard(text) {
  * @returns {*|jQuery}
  */
 function getHtmlFromElements(parentElement) {
-    var holder = document.createElement('div');
-    $(holder).append(parentElement);
-    return $(holder).html();
+  var holder = document.createElement('div');
+  $(holder).append(parentElement);
+  return $(holder).html();
+}
+
+
+/**
+ * Fetches template contents
+ * @param fileName
+ * @returns {Deferred object}
+ * http://stackoverflow.com/a/14220323
+ */
+function getTemplate(fileName){
+  var templateURL = chrome.runtime.getURL(`/fragments/${fileName}`);
+  return $.get(templateURL);
 }
