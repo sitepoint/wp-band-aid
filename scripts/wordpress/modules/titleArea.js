@@ -25,7 +25,7 @@ var TitleArea = (function() {
     return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
   }
 
-  function buildResults(data){
+  function buildHeadlineAnalysisResults(data){
     function getSentiment(sentiment){
       return (sentiment === "positive")? "positive" : "negative";
     }
@@ -147,12 +147,18 @@ var TitleArea = (function() {
     $titleCapBtn.on("click", function(e){
       e.preventDefault();
       var currTitle = $titleInput.val();
+
+      if(currTitle === ""){
+        alert("Please enter a title first!");
+        return;
+      }
+
       $titleInput.val(capitalize(currTitle));
 
       getHeadlineAnalysis(currTitle)
       .done(function(data){
         $scorePointer.css("left", data.score.total + "%");
-        var html = buildResults(data);
+        var html = buildHeadlineAnalysisResults(data);
         $scoreInfo.html(html);
       })
       .fail(function(){
@@ -160,12 +166,11 @@ var TitleArea = (function() {
       });
     });
 
-    $subBtn.on("click", function (e) {
+    $subBtn.on("click", function(e) {
       e.preventDefault();
       var headings = getAllHeadings();
       var fixable = getFixableHeadings(headings);
       var modalContent = buildHeadlineModal(fixable);
-      //var $actionButton = (fixable.length > 0)? buildActionButton() : undefined;
       showModal({
         heading: "Fixable subheadings",
         bodyHTML: modalContent,
@@ -198,8 +203,8 @@ var TitleArea = (function() {
   }
 
   function init(){
-    // Get and compile Headline Analyzer template
-    // Then store it in a previously eclared global
+    // Get and compile templates
+    // Then store in a previously eclared global
     getTemplate("headline-analyzer.hbs")
     .then((data) => headlineAnalyzerTemplate = Handlebars.compile(data));
 
@@ -220,6 +225,7 @@ var TitleArea = (function() {
       $scorePointer = $(".pointer");
       $subBtn = $("#bandaid-capitalize-subheadings");
     })
+
     // Get Link Buttons template and append it to permalink row
     // Link Buttons template adds:
     // Rebuild Link button
@@ -230,6 +236,8 @@ var TitleArea = (function() {
       $copyLinkButton = $("#bandaid-copy-link");
       $rebuildLinkButton = $("#bandaid-rebuild-link");
     })
+
+    // Kick everything off
     .then(() => attachEventHandlers());
   }
 
