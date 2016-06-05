@@ -1,118 +1,19 @@
 "use strict";
 
 var TitleArea = (function() {
-  function addSubHeadingsButton(titleWrap, editorfield) {
-    var subBtn = document.createElement('button');
-    subBtn.innerText = "Capitalize Subheadings";
-    subBtn.className = "wp-core-ui button bandaid-button-title";
-    subBtn.id ="bandaid-capitalize-subheadings";
-    var rx = /<(h[2-6]).+>(.+)<\/\1>/ig;
+  var $titleWrap = $("#titlewrap");
+  var $titleInput = $("#title");
+  var $editorField = $(".wp-editor-area");
+  var $scoreFrame; // $(".headalyze")
+  var $scoreInfo; // $(".headalyze-info")
+  var $titleCapBtn; // $("#bandaid-capitalize-and-check")
+  var $scorePointer; // $(".pointer")
+  var $subBtn; // $("#bandaid-capitalize-subheadings")
+  var headlineAnalyzerTemplate;
 
-    $(subBtn).click(function (e) {
-      e.preventDefault();
-      var content = $(editorfield).val();
-      var matches = getAllMatches(rx, content);
-      var fixable = [];
-      var processed = [];
-      $.each(matches, function (i, match) {
-        var orig = match[2];
-        var capped = capitalize(orig);
-        if (processed.indexOf(capped) > -1) {
-          return true;
-        }
-        processed.push(capped);
-        if (orig !== capped) {
-          // Heading can be capitalized
-          fixable.push({original: orig, fixed: capped});
-        }
-      });
-
-      // Build list of capitalizable headings
-      var list = document.createElement('p');
-      $(list).text("Nothing to optimize, all subheadings look good!");
-
-      var actionButton;
-      if (fixable.length) {
-        list = document.createElement('ul');
-        $.each(fixable, function (i, obj) {
-
-          var li = document.createElement('li');
-          li.className = "bandaid-cappable-heading";
-
-          var label = document.createElement('label');
-          $(label).text('Fix: "' + obj.original + '" => "' + obj.fixed + '"');
-
-          var checkbox = document.createElement('input');
-          checkbox.type = "checkbox";
-          checkbox.name = "cappable[]";
-          checkbox.value = obj.original;
-          $(checkbox).prop('checked', true);
-          $(checkbox).change(function() {
-            if (!$(this).is(":checked")) {
-              $(".check-all").prop("checked", false);
-            }
-          });
-
-          $(label).prepend(checkbox);
-          $(li).append(label);
-          $(list).append(li);
-
-          actionButton = document.createElement("button");
-          actionButton.className = "wp-core-ui button button-primary";
-          actionButton.id = "bandaid-fix-selected";
-          actionButton.innerText = "Fix selected";
-          $(actionButton).click(function() {
-            var checkboxes = $(".bandaid-cappable-heading input:checked");
-            $.each(checkboxes, function (i, obj) {
-              var value = $(obj).val();
-              content = content.replace(value, capitalize(value));
-            });
-            $(editorfield).val(content);
-            hideModal();
-          });
-        });
-
-        var li = document.createElement('li');
-        li.className = "check-all-li";
-        var label = document.createElement('label');
-        $(label).text('Check all');
-
-        var checkbox = document.createElement('input');
-        checkbox.type = "checkbox";
-        checkbox.className = "check-all";
-        $(checkbox).prop('checked', true);
-
-        function checkAll() {
-          var $checkboxes = $(".bandaid-cappable-heading input");
-          if ($(this).is(":checked")) {
-            $checkboxes.prop('checked', true);
-            $(".check-all").prop('checked', true);
-          } else {
-            $checkboxes.prop('checked', false);
-            $(".check-all").prop('checked', false);
-          }
-        }
-
-        var len = fixable.length;
-        if (len > 1) {
-          $(label).prepend(checkbox);
-          $(li).append(label);
-          $(list).prepend(li);
-          $(checkbox).change(checkAll);
-        }
-
-        if (len > 10) {
-          var l1 = $(li).clone();
-          $(list).append(l1);
-          $(l1).find('input').change(checkAll);
-        }
-      }
-
-      showModal('Fixable subheadings', list, actionButton);
-    });
-
-    $(titleWrap).append(subBtn);
-  }
+  Handlebars.registerHelper('capitalize', function(options) {
+    return capitalize(options);
+  });
 
   function addRebuildSlugButton() {
     var subBtn = document.createElement('a');
@@ -139,10 +40,6 @@ var TitleArea = (function() {
       copyTextToClipboard("https://www.sitepoint.com/"+$("#editable-post-name-full").text());
     });
     $('#edit-slug-box').parent().append(a);
-  }
-
-  function getHeadlineAnalysis(headline){
-    return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
   }
 
   function buildResults(data, compiledTemplate){
@@ -206,59 +103,168 @@ var TitleArea = (function() {
     return html;
   }
 
-  function init(){
-    var titleWrap = $("#titlewrap");
-    var titleInput = $("#title");
-    var editorField = $(".wp-editor-area");
+  function getHeadlineAnalysis(headline){
+    return $.get("https://cos-headlines.herokuapp.com/?headline=" + headline);
+  }
 
-    // Get and compile headline analyzer template
-    var headLineTemplateURL = chrome.runtime.getURL("/fragments/headline-analyzer.hbs");
-    var headlineAnalyzerTemplate;
-    $.get(headLineTemplateURL, function(data) {
-      headlineAnalyzerTemplate = Handlebars.compile(data);
+  function getTemplate(file){
+    var templateURL = chrome.runtime.getURL(`/fragments/${file}`);
+    return $.get(templateURL);
+  }
+
+  function getAllHeadings(){
+    var rx = /<(h[2-6]).+>(.+)<\/\1>/ig;
+    var content = $editorField.val();
+
+    // getAllMatches returns an array of arrays
+    // [Array[3], Array[3]]
+
+    // Each fixable heading is in its own array
+    // 0: Array[3]
+    //   0: "<h2 id="hellotheretoday">hello there today</h2>"
+    //   1: "h2"
+    //   2: "hello there today"
+    //   index: 0
+    //   input: "<h2 id="hellotheretoday">hello there today</h2>↵<h2 id="hellotheretoday">hello there todayyy</h2>"
+    //   length:3
+    var matches = getAllMatches(rx, content);
+
+    return matches;
+  }
+
+  function getFixableHeadings(headings){
+    return headings.filter(
+      heading => heading[2] !== capitalize(heading[2])
+    ).map( heading => heading[2] );
+  }
+
+  function buildModal(fixable){
+    var modalTemplate = `
+      {{#if somethingToOptimize}}
+        <ul id="fixable-headings-list">
+          {{#if multiple}}
+            <li>
+             <label>
+               <input type="checkbox" id="check-all-headings" checked>Check all
+              </label>
+            </li>
+          {{/if}}
+          {{#each fixable}}
+            <li class="bandaid-cappable-heading">
+              <label>
+                <input type="checkbox" class="fixable" checked>
+                Fix: <span class="actual">{{this}}</span> =&gt;
+                     <span class="suggestion">{{capitalize this}}</span>
+              </label>
+            </li>
+          {{/each}}
+        </ul>
+      {{else}}
+        <p>Nothing to optimize, all subheadings look good!</p>
+      {{/if}}
+    `
+    var compiledModalTemplate = Handlebars.compile(modalTemplate)
+    var html = compiledModalTemplate({
+      somethingToOptimize: fixable.length,
+      multiple: fixable.length > 1,
+      fixable: fixable
     });
 
-    // Add the headline analysis score bar and capitalizer
-    var scoreFrame = document.createElement('div');
-    scoreFrame.className = 'headalyze';
-    var scoreBar = document.createElement('div');
-    scoreBar.className = 'headalyze-bar';
-    var scoreInfo = document.createElement('div');
-    scoreInfo.className = 'headalyze-info';
-    var scorePointer = document.createElement('div');
-    scorePointer.className = 'pointer';
-    $(scoreBar).append(scorePointer);
-    $(scoreFrame).append(scoreBar);
-    $(scoreFrame).append(scoreInfo);
-    $(scoreFrame).click(function() {
-      $(scoreInfo).toggle();
+    return html;
+  }
+
+  function capitalizeHeadings(){
+    var content = $editorField.val();
+
+    $(":checkbox.fixable:checked").each(function(){
+      var fixable = $(this).next(".actual").text();
+      var regExpString = "(<(h[2-6]).+>)" + fixable + "(</\\2>)";
+      var re = new RegExp(regExpString, "g");
+
+      content = content.replace(re, function(match, p1, p2, p3) {
+        return p1 + capitalize(fixable) + p3;
+      });
     });
 
-    var titleCapBtn = document.createElement('button');
-    titleCapBtn.innerText = "Capitalize and Check";
-    titleCapBtn.className = "wp-core-ui button bandaid-capitalize-and-check";
-    titleCapBtn.id ="bandaid-capitalize-and-check";
+    $editorField.val(content);
+    hideModal();
+  }
 
-    $(titleCapBtn).on("click", function(e){
+  function buildActionButton(){
+    var button = $('<button />', {
+      class: "wp-core-ui button button-primary",
+      id: "bandaid-fix-selected",
+      text: "Fix Selected",
+      click: capitalizeHeadings
+    });
+
+    return button;
+  }
+
+  function attachEventHandlers(){
+    $scoreFrame.on("click", () => $scoreInfo.toggle());
+
+    $titleCapBtn.on("click", function(e){
       e.preventDefault();
-      $(titleInput).val(capitalize($(titleInput).val()));
+      var currTitle = $titleInput.val()
+      $titleInput.val(capitalize(currTitle));
 
-      getHeadlineAnalysis($(titleInput).val())
+      getHeadlineAnalysis(currTitle)
       .done(function(data){
-        $(scorePointer).css("left", data.score.total + "%");
+        $scorePointer.css("left", data.score.total + "%");
         var html = buildResults(data, headlineAnalyzerTemplate);
-        $(scoreInfo).html(html);
+        $scoreInfo.html(html);
       })
       .fail(function(){
         window.alert("Could not contact API");
       });
     });
 
-    $(titleWrap).append(scoreFrame);
-    $(titleWrap).append(titleCapBtn);
+    $subBtn.on("click", function (e) {
+      e.preventDefault();
+      var headings = getAllHeadings();
+      var fixable = getFixableHeadings(headings);
+      var modalContent = buildModal(fixable);
+      var $actionButton = buildActionButton();
+      showModal('Fixable subheadings', modalContent, $actionButton);
+    });
 
-    addSubHeadingsButton(titleWrap, editorField);
-    addRebuildSlugButton(titleWrap);
+    $(document).on("click", "#fixable-headings-list :checkbox", function(e){
+      var $checkBoxes = $("#fixable-headings-list :checkbox");
+      if(this.id === "check-all-headings"){
+        $checkBoxes.prop('checked', this.checked)
+      } else {
+        $("#check-all-headings").prop('checked', false);
+      }
+    });
+  }
+
+  function init(){
+    // Get and compile Headline Analyzer template
+    // Then store it in a previously eclared global
+    getTemplate("headline-analyzer.hbs")
+    .then((data) => headlineAnalyzerTemplate = Handlebars.compile(data));
+
+    // Get Headalyze template and append it to title input field
+    // Headalyze template adds:
+    // Headalyzer score bar
+    // Capitlize and Check button
+    // Capitalize Subheading button
+    getTemplate("headalyze.html")
+    .then((html) => $titleWrap.append(html))
+    .then(function(){
+      // Cache elements in previously declared global
+      $scoreFrame = $(".headalyze");
+      $scoreInfo = $(".headalyze-info");
+      $titleCapBtn = $("#bandaid-capitalize-and-check");
+      $scorePointer = $(".pointer");
+      $subBtn = $("#bandaid-capitalize-subheadings");
+
+      // Set up all of the event handlers
+      attachEventHandlers();
+    });
+
+    addRebuildSlugButton($titleWrap);
     addCopyPermalinkButton();
   }
 
