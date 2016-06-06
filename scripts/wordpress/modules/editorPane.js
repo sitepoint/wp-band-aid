@@ -1,83 +1,85 @@
 "use strict";
 
 var EditorPane = (function() {
-  var checkFor = {
-    "strings": ["[author_more]"],
-    "patterns": []
-  };
-  var rx = /<a\s+(?:[^>]*?\s+)?href="([^"]*)"/ig;
 
-  // Check editor text for strings and patterns
-  var editorField = $(".wp-editor-area");
+  var $editorToolbar = $("#ed_toolbar");
+  var $editorField = $("#content");
+  var $postStatusInfoBar = $("#post-status-info tbody");
+  var $fullHeightEditorToggle = $('#editor-expand-toggle');
+  var $messageContainer; // $(".proofreader-main-row")
+  var $messageArea; // $(".proofreader-main-row td")
+  var $messageAreaTop; // $(".post-info-table")
 
-  function init(){
-    // Add information row
-    var row = document.createElement('tr');
-    var cell = document.createElement('td');
-    $(cell).attr('colspan', 2);
-    row.className = "proofreader-main-row";
-    row.appendChild(cell);
+  function updateMessages(messages){
+    if (messages.length){
+      $editorField.addClass('error');
+      $messageContainer.addClass("error");
+      $messageArea.html(messages.join("<br>"));
+    } else {
+      $editorField.removeClass('error');
+      $messageContainer.removeClass("error");
+      $messageArea.text("All good");
+    }
+  }
 
-    var table = $("#post-status-info");
-    $(table).find('tbody').prepend(row);
-
-    // ----------------------------------------------------
-
-    // Add secondary information row above text area
-    var tableClone = document.createElement('table');
-    tableClone.className = "post-info-table upper";
-    $(tableClone).append('<tbody></tbody>');
-    $(tableClone).find('tbody').prepend($(row).clone());
-    //$(tableClone).insertBefore("#wp-content-editor-container");
-    $("#ed_toolbar").append(tableClone);
-
-
-    // Check if editor expand toggle is on
-
-    var toggle = $('#editor-expand-toggle');
-    $(toggle).change(function (e) {
-      if ($(toggle).is(':checked')) {
-        $("table.post-info-table.upper").show();
-      } else {
-        $("table.post-info-table.upper").hide();
-      }
-    });
-    $(toggle).change();
-
-
-    // ----------------------------------------------------
-
-    var checker = setInterval(function () {
+  function startChecker(){
+    setInterval(function(){
       var errorMessages = [];
-      var content = $(editorField).val();
+      var content = $editorField.val();
 
-      checkFor.strings.forEach(function (a) {
-        if (content.indexOf(a) === -1) {
-          errorMessages.push("Missing " + a + "!");
-        }
-      });
+      if (content !== "" &&
+          content.indexOf("[author_more]") === -1) {
+        errorMessages.push("Missing [author_more]!");
+      }
 
+      var rx = /<a\s+(?:[^>]*?\s+)?href=(['"])([^"]*)\1/ig;
       var matches = getAllMatches(rx, content);
       $.each(matches, function (i, el) {
-        if (!linkOk(el[1])) {
-          errorMessages.push("Relative link found: " + el[1]);
+        if (!linkOk(el[2])) {
+          errorMessages.push("Relative link found: " + el[2]);
         }
       });
 
-      if (errorMessages.length && content != "") {
-        $(editorField).addClass('error');
-        $(".proofreader-main-row").addClass("error");
-        var cellText = "";
-        $.each(errorMessages, function (i, msg) {
-          cellText += msg + "<br>";
-        });
-        $(".proofreader-main-row td").html(cellText)
-      } else {
-        $(editorField).removeClass('error');
-        $(".proofreader-main-row").removeClass("error");
-        $(".proofreader-main-row td").text("All good");
+      updateMessages(errorMessages);
+
+      // Stop dynamically generated messages overlapping editor field
+      if ($messageAreaTop.is(":visible")){
+        $editorField.css(
+          "margin-top", $editorToolbar.outerHeight(true)
+        );
       }
     }, 2000);
+  }
+
+  function addEventHandlers(){
+    // If the "Enable full-height editor and distraction-free functionality"
+    // option is selected in the Screen Options menu (top right hand corner)
+    // then the status bar should be shown above and below the editor area.
+    // If it is deselected, then it should only be shown below it.
+    // Screen Options preferences are saved locally in a cookie
+    $fullHeightEditorToggle.on("change", function(){
+      if ($(this).is(':checked')) {
+        $messageAreaTop.show();
+      } else {
+        $messageAreaTop.hide();
+      }
+    });
+
+    $fullHeightEditorToggle.change();
+  }
+
+  function init(){
+    getTemplate("info-row.html")
+    .then(function(html){
+      $editorToolbar.append(html);
+      $postStatusInfoBar.prepend($(".proofreader-main-row").clone());
+      $messageContainer = $(".proofreader-main-row");
+      $messageAreaTop = $(".post-info-table");
+      $messageArea = $(".bandaid-message");
+
+      addEventHandlers();
+      startChecker();
+    });
   }
 
   return {
