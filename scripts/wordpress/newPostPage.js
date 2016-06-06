@@ -16,6 +16,7 @@ chrome.extension.sendMessage({}, function (response) {
       TitleArea.init();
 
       // Editor pane
+      // Adds status bar
       // Checks for presence of [author_more] tag
       // Checks for relative links
       EditorPane.init();
