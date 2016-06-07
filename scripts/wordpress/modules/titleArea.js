@@ -149,7 +149,7 @@ var TitleArea = (function() {
       var currTitle = $titleInput.val();
 
       if(currTitle === ""){
-        alert("Please enter a title first!");
+        window.alert("Please enter a title first!");
         return;
       }
 
