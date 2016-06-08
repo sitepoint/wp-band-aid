@@ -149,7 +149,10 @@ var TitleArea = (function() {
       var currTitle = $titleInput.val();
 
       if(currTitle === ""){
-        window.alert("Please enter a title first!");
+        showModal({
+          heading: "Nothing to Capitalize",
+          bodyHTML: "Please enter a title first!"
+         });
         return;
       }
 
@@ -162,7 +165,10 @@ var TitleArea = (function() {
         $scoreInfo.html(html);
       })
       .fail(function(){
-        window.alert("Could not contact API");
+        showModal({
+          heading: "Error",
+          bodyHTML: "Could not contact API",
+         });
       });
     });
 
