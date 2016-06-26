@@ -58,7 +58,7 @@ var EditorPane = (function() {
     // If it is deselected, then it should only be shown below it.
     // Screen Options preferences are saved locally in a cookie
     $fullHeightEditorToggle.on("change", function(){
-      if ($(this).is(':checked')) {
+      if ($(this).is(":checked")) {
         $messageAreaTop.show();
       } else {
         $messageAreaTop.hide();

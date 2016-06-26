@@ -36,6 +36,7 @@ chrome.extension.sendMessage({}, function (response) {
 
       // Syntax Highlighting widget
       // Syntax highlighting defaults to primary category
+      // Corrects bug in custom fields implementation
       SyntaxHighlightingWidget.init();
 
       // Generic changes applied to whole page
