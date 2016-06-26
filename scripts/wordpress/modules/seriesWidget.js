@@ -1,27 +1,28 @@
 "use strict";
 
-var SeriesWidget = (function() {
+var SeriesWidget = (function(){
+  var $seriesInput = $("#newseries");
+  var $seriesChecklist = $("#serieschecklist li");
+
   function addInstaFilter(){
-    // Make series input into an insta-filter
-    var seriesInput = $("#newseries");
-    var seriesChecklist = $("#serieschecklist").find('li');
-    if ($(seriesInput).length) {
-      // series input was found
-      $(seriesInput).keyup(function (e) {
-        var text = $(seriesInput).val();
-        if (text == "") {
-          $("#serieschecklist li").removeClass("hidden");
+    $seriesInput.on("keyup", function(){
+      var text = $seriesInput.val().toLowerCase();
+
+      if (text === "") {
+        $seriesChecklist.removeClass("hidden");
+        return;
+      }
+
+      $.each($seriesChecklist, function(index, listItem){
+        var seriesName = $(listItem).text().toLowerCase();
+
+        if (seriesName.indexOf(text) > -1) {
+          $(listItem).removeClass("hidden");
+        } else {
+          $(listItem).addClass("hidden");
         }
-        $.each(seriesChecklist, function (index, listItem) {
-          var seriesName = $(listItem).text().toLowerCase();
-          if (seriesName.indexOf(text.toLowerCase()) > -1) {
-            $(listItem).removeClass('hidden');
-          } else {
-            $(listItem).addClass('hidden');
-          }
-        });
       });
-    }
+    });
   }
 
   function init(){
@@ -32,4 +33,3 @@ var SeriesWidget = (function() {
     init: init
   };
 })();
-
