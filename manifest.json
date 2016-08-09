@@ -3,7 +3,7 @@
 
   "name": "WP Band Aid",
   "description": "This extension is for internal use at SitePoint. It makes using the WP back end a bit easier.",
-  "version": "0.13.7",
+  "version": "0.13.8",
 
   "background": {
     "scripts": [
@@ -33,7 +33,7 @@
     },
     {
       "matches": [ "https://www.sitepoint.com/wp-admin/*" ],
-      "js": [ "scripts/wordpress/dashboard.js" ],
+      "css": [ "css/styles.css" ],
       "run_at": "document_idle"
     },
     {
@@ -55,7 +55,7 @@
         "scripts/wordpress/modules/postPage.js",
         "scripts/wordpress/newPostPage.js"
       ],
-      "css": [ "css/styles.css", "css/jquery.datetimepicker.css" ],
+      "css": [ "css/jquery.datetimepicker.css" ],
       "run_at": "document_idle"
     }
   ],
