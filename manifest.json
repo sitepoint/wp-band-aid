@@ -49,6 +49,9 @@
     {
       "matches": [ "https://www.sitepoint.com/wp-admin/post*" ],
       "js": [
+        "lib/beautify.min.js",
+        "lib/beautify-css.min.js",
+        "lib/beautify-html.min.js",
         "lib/jquery.datetimepicker.js",
         "lib/showdown.min.js",
 
