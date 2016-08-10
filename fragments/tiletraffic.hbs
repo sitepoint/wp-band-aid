@@ -1,0 +1,12 @@
+<div class="tiletraffic">
+    {{#if error }}
+        <a href="#" title="Something went wrong: {{ error }}">:(</a>
+    {{else}}
+        {{#if total }}
+            <a target="_blank"
+               href="{{ parselyurl }}">{{ firstMonth }} of {{ total }} hits</a>
+        {{else}}
+            <a href="{{ parselyurl }}">{{ firstMonth }} hits so far</a>
+        {{/if}}
+    {{/if}}
+</div>
