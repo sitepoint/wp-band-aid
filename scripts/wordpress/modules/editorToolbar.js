@@ -1,6 +1,9 @@
 "use strict";
 
 var EditorToolbar = (function() {
+
+  // MARKDOWN to HTML
+
   function getShowdownConverter(){
     var converter = new showdown.Converter();
 
@@ -23,10 +26,8 @@ var EditorToolbar = (function() {
     return html;
   }
 
-  function addMDButton(){
-    var $editorToolbar = $("#ed_toolbar");
+  function addMDButton($editorToolbar, $mainTextArea){
     var converter = getShowdownConverter();
-    var $mainTextArea = $("#content");
     var $convertButton = $("<input />", {
       type: "button",
       value: "MD",
@@ -42,8 +43,46 @@ var EditorToolbar = (function() {
     $editorToolbar.append($convertButton);
   }
 
+  // BEAUTIFY HTML
+
+  function getBeautifier(){
+    var options = {
+      "preserve_newlines": true,
+      "wrap_line_length": 0
+    };
+    return {
+      beautify: function(html) {
+        console.log(options);
+        return html_beautify(html, options);
+      }
+    }
+  }
+
+  function addBeautyButton($editorToolbar, $mainTextArea) {
+    var beautifier = getBeautifier();
+    var $beautifyButton = $("<input />", {
+      type: "button",
+      value: "Beauty",
+      class: "ed_button button button-small",
+      id: "bandaid-beautify",
+      title: "Beautify HTML",
+      click: function(){
+        var html = $mainTextArea.val();
+        var beautifulHtml = beautifier.beautify(html);
+        $mainTextArea.val(beautifulHtml);
+      }
+    });
+    $editorToolbar.append($beautifyButton);
+  }
+
+  // INIT
+
   function init(){
-    addMDButton();
+    var $editorToolbar = $("#ed_toolbar");
+    var $mainTextArea = $("#content");
+
+    addMDButton($editorToolbar, $mainTextArea);
+    addBeautyButton($editorToolbar, $mainTextArea);
   }
 
   return {
